@@ -10,6 +10,28 @@ local Play = require("ui.pages.play")
 local booted = false
 
 function Start()
+    -- 【临时诊断】探测资源路径映射（本地 validate + 远端日志都会打）
+    if type(_G.cache) == "table" and type(_G.cache.GetFile) == "function" then
+        for _, p in ipairs({
+            "data/config.json", "assets/data/config.json", "config.json",
+            "data/levels/0001.json", "levels/0001.json",
+            "Sounds/fill_ok.wav", "assets/Sounds/fill_ok.wav",
+            "Fonts/MiSans-Regular.ttf",
+        }) do
+            local okP, f = pcall(function() return _G.cache:GetFile(p) end)
+            local hit = okP and f ~= nil
+            local content = nil
+            if hit then
+                local okR, c = pcall(function() return f:ReadString() end)
+                if okR then content = c end
+                if f.Close then pcall(function() f:Close() end) end
+            end
+            print(string.format("[probe] %s => hit=%s len=%s", p, tostring(hit),
+                content and tostring(#content) or "nil"))
+        end
+        print(string.format("[probe] Scene=%s io=%s", tostring(_G.Scene ~= nil), tostring(io ~= nil)))
+    end
+
     local okCfg, errCfg = Config.load()
     if not okCfg then
         print("[main] 配置加载失败: " .. tostring(errCfg))
