@@ -2,7 +2,12 @@
   "version": 1,
   "meta": {
     "note": "唯一数值来源。代码中禁止硬编码数值（0/1/循环边界除外）。",
-    "updated": "2026-10-23"
+    "updated": "2026-10-24"
+  },
+  "time": {
+    "_doc": "时间单位换算。逻辑层禁止硬编码 3600/86400，一律走这里。",
+    "sec_per_hour": 3600,
+    "sec_per_day": 86400
   },
   "stamina": {
     "max": 50,
@@ -22,9 +27,18 @@
     "max_per_level": 3
   },
   "items": {
+    "hint_price_gold": 20,
     "shuffle_price": 15,
     "skip_price": 30,
-    "double_duration_sec": 1800
+    "double_duration_sec": 1800,
+    "skip_gold_ratio": 0,
+    "ad_grant": {
+      "hint": 1,
+      "shuffle": 1,
+      "skip": 1,
+      "double": 1
+    },
+    "undo_unlimited": true
   },
   "difficulty": {
     "segments": [
@@ -98,19 +112,20 @@
       "max_ratio": 0.4
     },
     "challenge": {
+      "_doc": "每日挑战预设：8×8、8~10 词、高交叉（DEV T20）",
       "grid": [
         8,
         8
       ],
       "idiom_count": [
-        5,
-        7
+        8,
+        10
       ],
       "cross": [
         5,
         8
       ],
-      "rare_ratio": 0.4,
+      "rare_ratio": 0.25,
       "distractors": [
         6,
         8
@@ -118,7 +133,10 @@
     }
   },
   "economy_guard": {
-    "idle_output_ratio_cap": 0.3
+    "_doc": "护栏口径见 PRD §3.5 供需校验：日均 30 关 × 15 金币 = 450 主动产出，挂机 ≤30%（135/日）",
+    "idle_output_ratio_cap": 0.3,
+    "reference_levels_per_day": 30,
+    "reference_gold_per_level": 15
   },
   "glyph": {
     "_doc": "B1 字形图集容量风险 → 采用 P2 保守方案：限制单关不重复汉字数 + 进关预热字形",
@@ -384,5 +402,346 @@
       "spark_radius": 130,
       "spark_duration": 0.6
     }
+  },
+  "rank": {
+    "tiers": [
+      {
+        "id": "tongsheng",
+        "name": "童生",
+        "need": 0
+      },
+      {
+        "id": "xiucai",
+        "name": "秀才",
+        "need": 10
+      },
+      {
+        "id": "juren",
+        "name": "举人",
+        "need": 25
+      },
+      {
+        "id": "gongshi",
+        "name": "贡士",
+        "need": 50
+      },
+      {
+        "id": "jinshi",
+        "name": "进士",
+        "need": 90
+      },
+      {
+        "id": "tanhua",
+        "name": "探花",
+        "need": 140
+      },
+      {
+        "id": "bangyan",
+        "name": "榜眼",
+        "need": 200
+      },
+      {
+        "id": "zhuangyuan",
+        "name": "状元",
+        "need": 300
+      }
+    ],
+    "salary_gold_per_tier": 20,
+    "unlock_segment_by_tier": 3
+  },
+  "manor": {
+    "names": [
+      "茅草屋",
+      "木屋",
+      "砖房",
+      "大院",
+      "府邸",
+      "宫殿"
+    ],
+    "costs": [
+      100,
+      300,
+      800,
+      2000,
+      5000
+    ],
+    "gold_bonus_ratio": [
+      0.0,
+      0.05,
+      0.1,
+      0.15,
+      0.22,
+      0.3
+    ]
+  },
+  "followers": {
+    "idle_cap_hours": 8,
+    "max_level": 10,
+    "output_growth_per_level": 0.18,
+    "cost_growth_per_level": 1.35,
+    "list": [
+      {
+        "id": "libai",
+        "name": "李白",
+        "kind": "文",
+        "output": 18,
+        "cost": 200
+      },
+      {
+        "id": "sushi",
+        "name": "苏轼",
+        "kind": "文",
+        "output": 14,
+        "cost": 160
+      },
+      {
+        "id": "liqingzhao",
+        "name": "李清照",
+        "kind": "文",
+        "output": 10,
+        "cost": 120
+      },
+      {
+        "id": "guanyu",
+        "name": "关羽",
+        "kind": "武",
+        "output": 20,
+        "cost": 220
+      },
+      {
+        "id": "yuefei",
+        "name": "岳飞",
+        "kind": "武",
+        "output": 16,
+        "cost": 180
+      },
+      {
+        "id": "huoqubing",
+        "name": "霍去病",
+        "kind": "武",
+        "output": 12,
+        "cost": 140
+      },
+      {
+        "id": "zhugeliang",
+        "name": "诸葛亮",
+        "kind": "政",
+        "output": 30,
+        "cost": 320
+      },
+      {
+        "id": "weizheng",
+        "name": "魏征",
+        "kind": "政",
+        "output": 22,
+        "cost": 240
+      },
+      {
+        "id": "wanganshi",
+        "name": "王安石",
+        "kind": "政",
+        "output": 16,
+        "cost": 180
+      }
+    ]
+  },
+  "signin": {
+    "cycle_days": 7,
+    "rewards": [
+      {
+        "gold": 20,
+        "item": null
+      },
+      {
+        "gold": 30,
+        "item": null
+      },
+      {
+        "gold": 40,
+        "item": "hint"
+      },
+      {
+        "gold": 50,
+        "item": null
+      },
+      {
+        "gold": 60,
+        "item": "shuffle"
+      },
+      {
+        "gold": 80,
+        "item": null
+      },
+      {
+        "gold": 120,
+        "item": "double"
+      }
+    ]
+  },
+  "daily_task": {
+    "tasks": [
+      {
+        "id": "clear_3",
+        "desc": "通关 3 关",
+        "target": 3,
+        "reward_gold": 30,
+        "reward_item": null
+      },
+      {
+        "id": "no_hint_2",
+        "desc": "不用提示通关 2 关",
+        "target": 2,
+        "reward_gold": 40,
+        "reward_item": null
+      },
+      {
+        "id": "idiom_8",
+        "desc": "累计达成 8 条成语",
+        "target": 8,
+        "reward_gold": 25,
+        "reward_item": "hint"
+      }
+    ]
+  },
+  "achievements": {
+    "list": [
+      {
+        "id": "clear_10",
+        "name": "小试牛刀",
+        "metric": "levels",
+        "target": 10,
+        "reward_gold": 50
+      },
+      {
+        "id": "clear_50",
+        "name": "学富五车",
+        "metric": "levels",
+        "target": 50,
+        "reward_gold": 150
+      },
+      {
+        "id": "book_100",
+        "name": "满腹经纶",
+        "metric": "book",
+        "target": 100,
+        "reward_gold": 200
+      },
+      {
+        "id": "streak_5",
+        "name": "文思泉涌",
+        "metric": "streak",
+        "target": 5,
+        "reward_gold": 60
+      }
+    ]
+  },
+  "challenge": {
+    "idiom_count": 10,
+    "time_limit_sec": 180,
+    "reward_gold": 60,
+    "reward_gold_per_idiom": 5,
+    "daily_limit": 1,
+    "grid": [
+      8,
+      8
+    ],
+    "pool_size": 20,
+    "path_fmt": "levels/challenge/%03d.json"
+  },
+  "ad": {
+    "interstitial_every_levels": 5,
+    "cooldown_sec": 30,
+    "personalized_for_minor": false,
+    "placements": [
+      {
+        "id": "stamina",
+        "name": "体力恢复",
+        "reward_kind": "stamina",
+        "reward_amount": 10,
+        "free_exit": true
+      },
+      {
+        "id": "double",
+        "name": "双倍金币",
+        "reward_kind": "item",
+        "reward_item": "double",
+        "free_exit": true
+      },
+      {
+        "id": "hint",
+        "name": "补充提示",
+        "reward_kind": "item",
+        "reward_item": "hint",
+        "free_exit": true
+      },
+      {
+        "id": "skip",
+        "name": "跳过卡",
+        "reward_kind": "item",
+        "reward_item": "skip",
+        "free_exit": true
+      }
+    ]
+  },
+  "iap": {
+    "products": [
+      {
+        "id": "gold_1000",
+        "name": "金币 1000",
+        "price_cny": 6,
+        "gold": 1000
+      },
+      {
+        "id": "gold_5000",
+        "name": "金币 5000",
+        "price_cny": 25,
+        "gold": 5000
+      },
+      {
+        "id": "month_card",
+        "name": "月卡",
+        "price_cny": 30,
+        "gold": 3000
+      },
+      {
+        "id": "no_ad",
+        "name": "去广告",
+        "price_cny": 18,
+        "gold": 0
+      }
+    ],
+    "limits": [
+      {
+        "age_max": 7,
+        "per_payment_cny": 0,
+        "monthly_cny": 0
+      },
+      {
+        "age_max": 15,
+        "per_payment_cny": 50,
+        "monthly_cny": 200
+      },
+      {
+        "age_max": 17,
+        "per_payment_cny": 100,
+        "monthly_cny": 400
+      }
+    ]
+  },
+  "compliance": {
+    "realname_required": true,
+    "minor_daily_minutes": 60,
+    "minor_allowed_weekdays": [
+      5,
+      6,
+      7
+    ],
+    "minor_allowed_hours": [
+      20,
+      21
+    ],
+    "minor_holiday_allowed": true,
+    "health_notice": "适度游戏益脑，沉迷游戏伤身。合理安排时间，享受健康生活。",
+    "age_prompt": "本游戏适合全年龄段玩家。请合理安排游戏时间。"
   }
 }

@@ -45,10 +45,14 @@ function M.default()
         stamina_ts = 0,          -- 由调用方（Game.init）写入当前时间
         gold = 0,
         streak = 0,              -- 连对（清关无错填/无提示累积）
+        best_streak = 0,         -- 历史最长连对（成就度量用）
         items = { hint = 0, shuffle = 0, skip = 0, double = 0 },
+        double_until_ts = 0,     -- 双倍卡生效截止（服务端秒）
         max_level_passed = 0,
         hints_used_today = 0,
         daily_reset_ts = 0,
+        daily = { day = 0, tasks = {}, claimed = {} },   -- 每日任务（T19）
+        challenge = { day = 0, plays = 0, best = 0, started_ts = 0 },  -- 每日挑战（T20）
         signin = { streak = 0, last_claim_day = 0 },
         book = { unlocked = {}, wrong = {} },
         achievements = {},

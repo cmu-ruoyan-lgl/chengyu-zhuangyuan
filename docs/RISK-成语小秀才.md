@@ -454,3 +454,12 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | S1-12 | 远端中文大面积豆腐块（第/金/马/心/提/示等超高频字全缺） | 字体子集脚本 `pick_cjk` 按**码点序**截断前 3500 字，常用字码点分散被切掉；且 idioms.json 采集字段误用 `idiom`（实为 `word`） | 字集改为「GB2312 全 6763 字 ∪ 题库 word ∪ Lua 中文文案」，构建脚本自动采集；重出 Regular/Bold（9357 字形）并同步 MiSans 兜底副本 | ✅ 已根治（含防回归：构建脚本自动采集，README 警示） |
 | S1-13 | 字形预热白做：自建临时 NanoVG ctx 预热后即删 | 字形图集是 per-context 的，临时 ctx 与 UI 实际渲染上下文不共享 | glyphwarm 改为 `UI.GetNVGContext()` 预热真实上下文，复刻 UI.Render 的 DPR=GetScale()，face 对齐 sans/sans-bold；临时 ctx 仅作 headless 兜底 | ✅ 已根治 |
 | S1-14 | 远端 ERROR 日志刷「Could not find resource save.json」（红色角标 ③） | fs.readText 对沙箱存档也先走 cache:GetFile，不存在即落 ERROR | GetFile 前先 `cache:Exists` 挡一道 | ✅ 已根治 |
+
+### 2.0 S2 系统层（2026-10-24）
+
+| 编号 | 问题 | 根因 | 解法 | 状态 |
+|---|---|---|---|---|
+| S2-1 | PRD §3.5 的「门客产出 5–30 金币/小时」与「日挂机 ≤ 主动产出 30%」在 8 小时封顶下**互相矛盾**：按 450/日的主动产出，30% 只有 135/日，而 1 个门客 8 小时就产 40–240，9 个门客满级则达 300%+ | PRD 该行为 `[PLACEHOLDER]`，两条约束未做联合校验（供需校验里只写了「挂机 ≈135」的结论，没反推单门客产出） | 采用**双重封顶**：①时间封顶 8 小时（`followers.idle_cap_hours`）；②金额封顶 = `idle_output_ratio_cap × 参考日均主动产出`（`economy_guard.reference_levels_per_day=30 × reference_gold_per_level=15 = 450` → 135/日）。`Followers.pending(save, ts, dailyCap)` 取二者较小者，`Economy.guardReport` 恒绿。门客产出仍保留 PRD 的 5–30/时，高等级门客的收益体现为「更快填满当日额度」而非无限叠加 | ✅ 已根治（单测：全门客满级场景下 ratio 仍 ≤0.3；30 天模拟产出 < 全建满成本） |
+| S2-2 | 挑战卷校验报「冷门比例超过阈值 0.08」（12 张） | `verify_levels` 按 `level_id` 落主线段位，挑战卷 level_id=1..20 被判到段位 1（阈值 0.08），而挑战预设是 0.25 | 生成时给挑战卷打 `kind="challenge"` 标记，校验按 `difficulty.challenge` 取阈值；主线逻辑不变 | ✅ 已根治（150 关 + 20 卷，0 error） |
+| S2-3 | 挑战卷目标词数写死 10，但生成器实际产出 8–9 词，「全达成奖励」永远拿不到 | 目标词数取自 config 常量，与卷子实际成语数脱钩 | `Challenge.idiomTarget(session)` 优先取当前卷子的 `#levelData.idioms`，未开始时才回退 config 设计值 | ✅ 已根治 |
+| S2-4 | `Currency.add` 返回 `(true, 余额)` 而非金额，`Followers.collect` 误把 true 当金币返回 | 接口返回值语义未对齐 | collect 改为返回实际入账金额 `p.gold`，`Currency.add` 失败返回 0 | ✅ 已根治 |

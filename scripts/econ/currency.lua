@@ -47,6 +47,9 @@ function M.settleLevel(save, stats)
     else
         save.streak = 0
     end
+    if (tonumber(save.streak) or 0) > (tonumber(save.best_streak) or 0) then
+        save.best_streak = save.streak
+    end
 
     local streakMul = 1
     if clean and save.streak >= threshold then

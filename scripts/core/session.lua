@@ -65,6 +65,8 @@ function Session.start(levelId, ctx)
     self.hintsUsed = 0
     self.shuffleUsed = 0
     self.skipped = false
+    self.completedRefs = {}    -- 已达成成语的题库 ref（图鉴解锁用，T18）
+    self.wrongRefs = {}        -- 填错过的成语 ref（错题本用，T18）
     self.state = "Idle"
     self.listeners = {}
     self.stats = { startedAt = os.clock(), durationMs = 0 }
@@ -148,8 +150,24 @@ function Session:fill(r, c, char, bankIdx)
     if not ok then
         self.wrongCount = self.wrongCount + 1
         self.state = "Idle"
-        self:emit("on_invalid", { r = r, c = c, char = char })
-        return { ok = false, reason = "wrong_char" }
+        -- 错题本：把「填错格所属成语」记入（T18）
+        local refs = {}
+        local cell = self.grid:getCell(r, c)
+        for _, owner in ipairs(cell and cell.owners or {}) do
+            local it = self.grid.idioms[owner]
+            if it and it.idiom_ref then
+                local seen = false
+                for _, x in ipairs(self.wrongRefs) do
+                    if x == it.idiom_ref then seen = true end
+                end
+                if not seen then
+                    self.wrongRefs[#self.wrongRefs + 1] = it.idiom_ref
+                end
+                refs[#refs + 1] = it.idiom_ref
+            end
+        end
+        self:emit("on_invalid", { r = r, c = c, char = char, refs = refs })
+        return { ok = false, reason = "wrong_char", refs = refs }
     end
 
     -- 消费字块
@@ -172,7 +190,15 @@ function Session:fill(r, c, char, bankIdx)
 
     local res = Validator.onCellFilled(self.grid, r, c)
     for _, id in ipairs(res.completedIdiomIds) do
-        self:emit("on_idiom_completed", { idiomId = id, answer = self.grid.idioms[id].answer })
+        local it = self.grid.idioms[id]
+        if it and it.idiom_ref then
+            self.completedRefs[#self.completedRefs + 1] = it.idiom_ref
+        end
+        self:emit("on_idiom_completed", {
+            idiomId = id,
+            answer = it and it.answer,
+            ref = it and it.idiom_ref,
+        })
     end
     for _, pos in ipairs(res.newlyValidCross) do
         self:emit("on_cross_validated", pos)
@@ -262,6 +288,8 @@ function Session:statsSnapshot()
         wrongCount = self.wrongCount,
         shuffleUsed = self.shuffleUsed,
         cleared = Validator.checkLevel(self.grid),
+        completedRefs = self.completedRefs,
+        wrongRefs = self.wrongRefs,
     }
 end
 
