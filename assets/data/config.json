@@ -753,6 +753,7 @@
     "age_prompt": "本游戏适合全年龄段玩家。请合理安排游戏时间。",
     "default_adult_age": 25,
     "default_minor_age": 12,
-    "holiday_dates": []
+    "holiday_dates": [],
+    "privacy_url": ""
   }
 }

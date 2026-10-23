@@ -629,6 +629,9 @@ function M.compliance()
         playedSeconds = Compliance.playedSeconds(save, now),
         notice = Compliance.healthNotice(),
         agePrompt = Compliance.agePrompt(),
+        -- PRD §5.1：隐私政策地址由用户托管后填 config.compliance.privacy_url；
+        -- 为空表示尚未配置，UI 不展示（不得编造占位链接）。
+        privacyUrl = Compliance.privacyUrl(),
     }
 end
 

@@ -184,6 +184,29 @@ function Login.mount()
         return nil
     end
 
+    -- 隐私政策（PRD §5.1）：URL 未配置时不渲染，避免展示占位/假链接
+    local footer = {
+        UI.Label {
+            text = info.notice,
+            fontSize = Theme.font("caption", 24),
+            fontColor = c("text_light_dim"),
+            textAlign = "center",
+            width = "100%",
+            paddingBottom = 40,
+        },
+    }
+    if type(info.privacyUrl) == "string" and info.privacyUrl ~= "" then
+        footer[#footer + 1] = UI.Label {
+            text = "隐私政策：" .. info.privacyUrl,
+            fontSize = Theme.font("caption", 24) * 0.9,
+            fontColor = c("text_light_dim"),
+            textAlign = "center",
+            width = "100%",
+            paddingBottom = 24,
+            flexShrink = 1,
+        }
+    end
+
     local root = UI.Panel {
         width = "100%",
         height = "100%",
@@ -194,13 +217,12 @@ function Login.mount()
         justifyContent = "space-between",
         children = {
             body,
-            UI.Label {
-                text = info.notice,
-                fontSize = Theme.font("caption", 24),
-                fontColor = c("text_light_dim"),
-                textAlign = "center",
+            UI.Panel {
                 width = "100%",
-                paddingBottom = 40,
+                flexDirection = "column",
+                alignItems = "center",
+                flexShrink = 1,
+                children = footer,
             },
         },
     }

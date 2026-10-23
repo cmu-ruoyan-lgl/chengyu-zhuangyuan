@@ -175,6 +175,15 @@ function M.agePrompt()
     return Config.get("compliance.age_prompt", "本游戏适合全年龄段玩家。")
 end
 
+--- 隐私政策地址（PRD §5.1 必备项）。
+-- 该 URL 必须由用户托管后填进 config.compliance.privacy_url；
+-- 为空时登录页不展示（不能编造一个假链接，也不能留占位域名）。
+function M.privacyUrl()
+    local url = Config.get("compliance.privacy_url", "")
+    if type(url) ~= "string" or url == "" then return "" end
+    return url
+end
+
 ------------------------------------------------------------------------------
 -- 付费上限（供 econ/iap 复用）
 ------------------------------------------------------------------------------
