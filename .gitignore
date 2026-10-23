@@ -113,3 +113,10 @@ urhox-libs/
 .workbuddy/
 .maker-mcp/
 #!/tools/*.md
+
+# S1 存档：tool_mode 下引擎 File 写在项目根（真机沙箱不受影响）
+/save.json
+/save.json.bak
+/save.json.tmp
+/.tmp_test_save.json*
+/.tmp_smoke_save.json*

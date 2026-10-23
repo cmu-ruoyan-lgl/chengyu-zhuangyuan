@@ -1,12 +1,11 @@
--- 入口：初始化 UI、加载配置、进入 play 页。
--- 引擎约定：脚本需实现 Start()；Stop() 负责清理。
+-- 入口：初始化 存档/体力/音频 → 挂载 play 页。
+-- 引擎约定：脚本需实现 Start()；Stop() 负责清理（写中断快照）。
 
 local UI = require("urhox-libs/UI")
 local Config = require("core.config")
+local Game = require("system.game")
+local SFX = require("system.audio")
 local Play = require("ui.pages.play")
-
--- 启动关卡：M1 阶段固定第 1 关，后续由路由/存档决定
-local START_LEVEL = 1
 
 local booted = false
 
@@ -15,6 +14,12 @@ function Start()
     if not okCfg then
         print("[main] 配置加载失败: " .. tostring(errCfg))
     end
+
+    -- 读档 + 体力离线恢复结算（进任何 UI 前完成，杀进程不丢）
+    local save = Game.init()
+
+    local okAudio, whyAudio = SFX.init({ sound = save.settings and save.settings.sound })
+    print("[main] 音效通道 " .. (okAudio and "就绪" or ("降级: " .. tostring(whyAudio))))
 
     UI.Init({
         theme = "default-dark",
@@ -30,17 +35,27 @@ function Start()
         vw or -1, vh or -1, UI.GetScale() or -1,
         UI.GetScreenWidth() or -1, UI.GetScreenHeight() or -1))
 
-    local s, err = Play.mount(START_LEVEL)
-    if not s then
-        print("[main] 进入关卡失败: " .. tostring(err))
-        return
+    -- 云档启动合并（best-effort，异步；失败不影响本地档）
+    Game.tryCloudMerge(function(adopted)
+        if adopted then
+            print("[main] 已采纳云端存档")
+        end
+    end)
+
+    local s = Play.mount()
+    if s then
+        print("[main] play 页已挂载，关卡 " .. tostring(s.levelId)
+            .. string.format("（体力 %d，金币 %d）", Game.stamina(), Game.gold()))
+    else
+        print("[main] 体力不足，已挂体力门（当前体力 " .. tostring(Game.stamina()) .. "）")
     end
     booted = true
-    print("[main] play 页已挂载，关卡 " .. tostring(s.levelId))
 end
 
 function Stop()
     if booted then
+        -- 中断快照：杀进程/退出时保留当前关进度
+        Game.abandon()
         UI.Shutdown()
         booted = false
     end

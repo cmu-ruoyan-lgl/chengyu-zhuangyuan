@@ -206,6 +206,21 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 
 ---
 
+## 1.8 S1 问题留痕（2026-10-23 22:20，S1 可玩核心）
+
+| # | 问题 | 根因 | 解法 | 是否根治 |
+|---|---|---|---|---|
+| S1-1 | 体力时钟回退时 `stamina_ts` 被重置为当前时间 | `Stamina.sync` 的 `last > nowTs` 分支误刷新基准，违反裁决 #13「不允许回退」——回退后 ts 变小，后续恢复量反而放大（若时间源被操纵即作弊通道） | 回退分支不动基准、不恢复；单测「时钟回退不得推进基准」防回归 | ✅ 已根治 |
+| S1-2 | play 页 banner 行 Layout Overflow 2px | 「下一关」按钮固有高度 44px > banner 行高 42px（6%×700px viewport） | 按钮移入工具栏行（14% 行高）；banner 行保持纯 Label | ✅ 已根治（Layout Warning 回 0） |
+| S1-3 | WASM 网页版本地存档在内存文件系统，刷新即丢 | 引擎 file-storage 文档明确：WASM savedata 存内存 FS | `system/save.lua` 增加 clientCloud best-effort 云同步 + 启动合并（max_level_passed / stamina_ts 大者胜）；失败静默不阻塞 | ⚠️ 缓解非根治：云同步依赖 TapTap 登录态，未登录时本地档仍丢 |
+| S1-4 | 音效素材需要 AI 生成（配额/时间成本） | 裁决 #17 MCP 优先，但配额受限不得阻塞开发 | `tools/make_sfx.py` 用 stdlib wave 合成 5 个玩法音效（16-bit PCM 22050Hz，总计 ~65KB）；M4 美术阶段可用 MCP 重新生成替换 | ✅ 已根治（S1 范围内） |
+| S1-5 | `save.json` schema 新增 `current` 字段（中断续玩快照） | DEV §3.4 schema 未定义，S1 验收「杀进程不丢」需要 | schema_version 保持 1（该 schema 尚未对外发布），字段语义：{level_id, grid, bank, hints_used, wrong_count}；通关/跳过置 nil | ✅ 已根治，补进 DEV §3.4 待文档同步 |
+| S1-6 | validate 跑完项目根多出 `save.json`/`save.json.bak`，且会跨轮污染（体力越扣越少，第 11 轮起触发体力门） | tool_mode 下引擎 `File` 写落在项目根而非用户沙箱 | ①`.gitignore` 忽略 `/save.json*`；②`verify.sh` validate 前清理运行时存档；真机/预览沙箱路径正确，不受影响 | ✅ 已根治（含防回归：每次 validate 前清理） |
+
+**S1 冒烟（离线自动）**：新号满体力 50 → 连续通关 10 关（体力 50→0、金币 450、连对 10、连对倍率 ×2 自第 3 关起生效）→ 第 11 关被体力门拦截 → 广告 mock +10 体力后进关成功。**PASS**。
+
+---
+
 ## 2. 全量风险登记表
 
 ### A. 环境与验证链

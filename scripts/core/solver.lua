@@ -86,11 +86,10 @@ function Solver.isDerivable(levelData)
         for _, id in ipairs(grid.idiomOrder) do
             local def = grid.idioms[id]
             if not def.done then
-                local emptyPos, emptyCount = nil, 0
+                local emptyCount = 0
                 for _, pos in ipairs(def.cells) do
                     if grid.cells[pos.r][pos.c].value == nil then
                         emptyCount = emptyCount + 1
-                        emptyPos = pos
                     end
                 end
                 if emptyCount == 1 then

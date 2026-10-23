@@ -47,6 +47,9 @@ if [ -n "$LUA" ]; then
 fi
 
 # 2) 运行时 validate（headless）
+# tool_mode 下引擎 File 写会落在项目根（非真机沙箱）。每次 validate 前清掉
+# 运行时存档，避免上一轮 validate 的存档污染本轮启动状态（体力越扣越少）。
+rm -f "$ROOT/save.json" "$ROOT/save.json.bak" "$ROOT/save.json.tmp"
 "$RT" "$ENTRY" \
   -tapcode_dir="$ROOT" \
   -tool_mode \
