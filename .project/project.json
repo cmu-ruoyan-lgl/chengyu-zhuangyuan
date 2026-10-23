@@ -5,7 +5,7 @@
     "id": "1532936202"
   },
   "entry": "main.lua",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "taptap_publish": {
     "title": "成语小秀才",
     "description": "经典成语填字：从字库选字填入棋盘，凑齐全部成语即过关。体力/金币循环，150 关已就位。",
