@@ -450,3 +450,4 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 |---|---|---|---|---|
 | S1-9 | Web 预览在用户 Chrome 也报「This browser lacks required runtime support」 | 登录后由 wasm_player_lite 播放器做能力检测（WASM/WebGL2 等），具体失败项未知；与用户浏览器版本或 GPU 加速被禁用有关 | 需用户查 chrome://version 与 chrome://gpu；同时提供手机扫码试玩通道兜底 | ⚠️ 未根治（待用户环境信息） |
 | S1-10 | 生成测试二维码被拒：title/category 为空、category 填中文「益智」不合法 | taptap_publish.title/category 必填；category 是英文枚举（rpg/casual/…/word/board） | project.json 填 title=成语小秀才、category=word；顺带修正 screen_orientation landscape→portrait（设计为竖屏） | ✅ 已根治，二维码已生成 |
+| S1-11 | 远端 Web 预览加载后全黑 | `settings.json` 的 `build.asset_dirs` 只有 `../assets`、`../scripts`，**data/ 整个目录未入包**（且全部缺 .meta），运行时「引擎内未找到文件: data/config.json」→ 进关失败连锁黑屏。本地 tool_mode 走 io 直读项目根，掩盖了问题 | ①asset_dirs 加 `../data`；②`generate_resource_meta` 补 153 个 .meta；③新增 `fs.data()` 做路径分流（打包端 fs_path 剥 data/ 前缀，本地保留）；④audio 探测只判 nil（wasm 端 Scene 绑定非 table） | ✅ 已根治（待远端重建确认） |
