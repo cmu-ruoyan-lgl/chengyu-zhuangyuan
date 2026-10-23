@@ -463,3 +463,15 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | S2-2 | 挑战卷校验报「冷门比例超过阈值 0.08」（12 张） | `verify_levels` 按 `level_id` 落主线段位，挑战卷 level_id=1..20 被判到段位 1（阈值 0.08），而挑战预设是 0.25 | 生成时给挑战卷打 `kind="challenge"` 标记，校验按 `difficulty.challenge` 取阈值；主线逻辑不变 | ✅ 已根治（150 关 + 20 卷，0 error） |
 | S2-3 | 挑战卷目标词数写死 10，但生成器实际产出 8–9 词，「全达成奖励」永远拿不到 | 目标词数取自 config 常量，与卷子实际成语数脱钩 | `Challenge.idiomTarget(session)` 优先取当前卷子的 `#levelData.idioms`，未开始时才回退 config 设计值 | ✅ 已根治 |
 | S2-4 | `Currency.add` 返回 `(true, 余额)` 而非金额，`Followers.collect` 误把 true 当金币返回 | 接口返回值语义未对齐 | collect 改为返回实际入账金额 `p.gold`，`Currency.add` 失败返回 0 | ✅ 已根治 |
+
+### 3.0 S3 商业化与合规（2026-10-24）
+
+| 编号 | 问题 | 根因 | 解法 | 状态 |
+|---|---|---|---|---|
+| S3-1 | 挑战倒计时与页面巡检在第 13 帧后静默停止：府邸/商店页从未挂载 | 引擎侧对同一脚本对象的 `SubscribeToEvent("Update", fn)` 是**单槽**的，后一次订阅会覆盖前一次（play 页与巡检入口各订阅一次，先订阅者被丢弃） | 新增 `ui/ticker.lua`：全项目只允许它订阅一次 Update，其余模块 `Ticker.add(fn)` 注册回调；pcall 包裹每个回调，单个回调出错不影响其他回调 | ✅ 已根治（巡检 6 次挂载全部成功，frames 60） |
+| S3-2 | 府邸/商店页在成年人档位崩溃：`bad argument to 'format' (number has no integer representation)` | 成年人付费限额返回 `math.huge`，`string.format("%d", huge)` 报错；且错误被 UI 回调吞掉，validate 仍报 PASS | 两页统一 `moneyText(n)`：`≥1e9` 显示「不限」，否则 `math.floor`；同时巡检入口改为打印挂载成功/失败，避免「静默失败但 validate 全绿」 | ✅ 已根治 |
+| S3-3 | 登录页按钮出现 Layout Warning（children 101px > container 48px） | `Button` 组件默认 `height=44`，两行文案（主标题 + 副标题）撑破 | 多行按钮显式给 `height`（带副标题 104，单行 78） | ✅ 已根治（Layout Warning = 0） |
+| S3-4 | 防沉迷计时恒为 0：用 `os.clock()` 推导 dt 得 0.0000 | 该平台 `os.clock()` 返回 CPU 时间且几乎不推进，不能当帧间隔 | 改为从 Update 事件取 `eventData["TimeStep"]:GetFloat()`，取不到时回退 1/60 秒 | ✅ 已根治（巡检日志 dt=0.0167，played 持续增长） |
+| S3-5 | 默认入口 validate 只能覆盖到登录页（未实名禁入），棋盘与各系统页沦为盲区 | 合规闸门上线后，新档必走登录页 | 新增 `validate_pages.lua` 巡检入口：登录→棋盘→府邸→商店→图鉴→棋盘（二次挂载），60 帧内跑完；`bash tools/verify.sh validate_pages.lua` | ✅ 已根治（6/6 挂载成功，0 Layout Warning） |
+
+**合规边界（非代码可完成，交付文档列为待用户处理）**：实名认证 SDK（姓名+身份证→公安核验）、真实支付渠道与 SKU 后台配置、聚合广告 SDK、隐私政策 URL 托管、版号/游戏备案。当前实现为「规则完整 + 通道占位」：实名状态与年龄分段、防沉迷时段与时长、付费限额均已生效并可单测，但认证/支付/播放三个外部通道是本地模拟。

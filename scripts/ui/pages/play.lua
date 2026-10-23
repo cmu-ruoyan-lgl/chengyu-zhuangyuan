@@ -11,6 +11,7 @@ local SFX = require("system.audio")
 local Warm = require("system.glyphwarm")
 local FX = require("ui.fx")
 local W = require("ui.widgets")
+local Ticker = require("ui.ticker")
 
 -- 样式/组件统一走 ui/widgets（与府邸页、图鉴页共享同一套漆底描金风格）
 local pct, c, withAlpha, shadow, pieceShadow, anim =
@@ -40,6 +41,8 @@ local refs = {
     clearReward = nil,
     clearCards = nil,
     challengeChip = nil,
+    compliance = nil,
+    complianceNotice = nil,
 }
 
 ------------------------------------------------------------------------------
@@ -867,18 +870,29 @@ function Play.onNextLevel()
     end
 end
 
---- 体力门：看广告（S1 mock，S3 接真实广告位）
+--- 体力门：看广告（T21 走广告点位；中途关闭不发奖 = 免费出口）
 function Play.onGateAd()
-    local before = Game.stamina()
-    Game.claimAdStamina()
-    local after = Game.stamina()
-    showBanner(string.format("广告奖励：体力 +%d", after - before), "jade")
-    if after >= Game.staminaCost() then
-        if refs.gate then refs.gate:SetVisible(false) end
-        Play.onNextLevel()
-    else
+    local ok, AD = pcall(require, "ui.admodal")
+    if not (ok and AD and AD.show) then
+        -- 降级：广告模块不可用直接按原 mock 发放
+        Game.claimAdStamina()
         Play.refreshGate()
+        return
     end
+    AD.show("stamina", {
+        onGranted = function()
+            showBanner("广告奖励已到账", "jade")
+            if Game.stamina() >= Game.staminaCost() then
+                if refs.gate then refs.gate:SetVisible(false) end
+                Play.onNextLevel()
+            else
+                Play.refreshGate()
+            end
+        end,
+        onDenied = function(reason)
+            showBanner(reason == "cooldown" and "广告冷却中，稍后再试" or "暂时无法观看广告", "seal")
+        end,
+    })
 end
 
 --- 体力门：等待
@@ -892,11 +906,14 @@ end
 ------------------------------------------------------------------------------
 
 local lastShownLeft_ = -1
-local tickHooked_ = false
 
---- 逐帧钩子（仅挑战模式生效）：刷新倒计时，归零自动交卷
-function Play.tick()
-    if Game.mode() ~= "challenge" then return end
+--- 逐帧回调（由 ui/ticker 统一调度）：①防沉迷计时与强下线判定（T23）；②挑战倒计时
+function Play.tick(dt)
+    if dt and dt > 0 then Game.tickPlayTime(dt) end
+    if Game.mode() ~= "challenge" then
+        Play.checkCompliance()
+        return
+    end
     local left = Game.challengeLeft()
     local sec = math.max(0, math.ceil(left))
     if sec ~= lastShownLeft_ then
@@ -908,15 +925,85 @@ function Play.tick()
     end
 end
 
---- 订阅引擎 Update（拿不到就退回「交互时刷新」的降级通路）
+--- 订阅逐帧回调（全项目只允许 ui/ticker 订阅一次 Update，见 ticker 顶部说明）
 local function hookTick()
-    if tickHooked_ then return end
-    if _G.SubscribeToEvent == nil then return end
-    local ok = pcall(function()
-        _G.SubscribeToEvent("Update", function() Play.tick() end)
-    end)
-    tickHooked_ = (ok == true)
-    print("[play] 逐帧钩子 " .. (tickHooked_ and "已挂载" or "不可用（降级为交互刷新）"))
+    Ticker.add(Play.tick)
+end
+
+local complianceShown_ = false
+
+--- 防沉迷：不可继续游玩时弹出阻断层（T23）
+function Play.checkCompliance()
+    local ok, reason = Game.canPlay()
+    if ok then
+        if complianceShown_ and refs.compliance then
+            refs.compliance:SetVisible(false)
+            complianceShown_ = false
+        end
+        return
+    end
+    if reason == "realname_required" then return end   -- 由登录页处理
+    if not refs.compliance then return end
+    if refs.complianceNotice then
+        refs.complianceNotice:SetStyle({ text = Game.compliance().reasonText })
+    end
+    if not complianceShown_ then
+        refs.compliance:SetVisible(true)
+        complianceShown_ = true
+    end
+end
+
+--- 阻断层（全屏吸点击，无法绕过）
+local function buildComplianceGate()
+    refs.complianceNotice = UI.Label {
+        text = "",
+        fontSize = Theme.font("toolbar", 28),
+        fontColor = c("text_light"),
+        textAlign = "center",
+        width = "86%",
+        marginTop = 18,
+    }
+    refs.compliance = UI.Panel {
+        position = "absolute",
+        top = 0, left = 0,
+        width = "100%", height = "100%",
+        backgroundColor = c("overlay"),
+        justifyContent = "center",
+        alignItems = "center",
+        visible = false,
+        -- 空 onClick 用于吃掉点击，避免穿透到下面棋盘
+        onClick = function() end,
+        children = { UI.Panel {
+            width = "86%",
+            borderRadius = 32,
+            backgroundColor = c("chip_bg"),
+            borderWidth = 3,
+            borderColor = c("chip_edge"),
+            boxShadow = shadow(30, 12, 170),
+            paddingHorizontal = 30,
+            paddingVertical = 36,
+            alignItems = "center",
+            children = {
+                UI.Label {
+                    text = "健康游戏提示",
+                    fontSize = Theme.font("title", 56),
+                    fontColor = c("gold"),
+                    fontWeight = "bold",
+                    textAlign = "center",
+                },
+                refs.complianceNotice,
+                UI.Label {
+                    text = Config.get("compliance.health_notice", ""),
+                    fontSize = Theme.font("caption", 24),
+                    fontColor = c("text_light_dim"),
+                    textAlign = "center",
+                    width = "100%",
+                    marginTop = 24,
+                },
+            },
+        } },
+    }
+    return refs.compliance
 end
 
 --- 展示挑战结果（res 来自 Challenge.finish，已在结算时发放奖励）
@@ -1048,6 +1135,7 @@ function Play.mount(_, opts)
             buildBanner(),
             clearPanel,
             gatePanel,
+            buildComplianceGate(),
             refs.fxLayer,   -- 特效层置顶，保证星星/金币在最上层
         },
     }

@@ -6,6 +6,7 @@ local Config = require("core.config")
 local Game = require("system.game")
 local SFX = require("system.audio")
 local Play = require("ui.pages.play")
+local Login = require("ui.pages.login")
 
 local booted = false
 
@@ -41,6 +42,15 @@ function Start()
             print("[main] 已采纳云端存档")
         end
     end)
+
+    -- 合规闸门（T23）：未实名禁入；未成年非开放时段/超时长不得进入
+    local info = Game.compliance()
+    if not info.canPlay then
+        print("[main] 合规闸门生效：" .. tostring(info.reason))
+        Login.mount()
+        booted = true
+        return
+    end
 
     local s = Play.mount()
     if s then

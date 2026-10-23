@@ -17,6 +17,13 @@ local function c(key, default)
     return W.c(key, default)
 end
 
+--- 金额文案（成年人的限额是 math.huge，不能直接 %d）
+local function moneyText(n)
+    local v = tonumber(n) or 0
+    if v >= 1e9 then return "不限" end
+    return string.format("%d", math.floor(v))
+end
+
 local function fs(key, default)
     return Theme.font(key, default)
 end
@@ -269,6 +276,22 @@ local function challengeSection()
     return W.sectionCard("每日挑战", kids, { subtitle = "限时内多答多得" })
 end
 
+local function shopSection()
+    local limit = Game.iapLimit()
+    local kids = {
+        actionRow({
+            line1("金币充值 / 看广告领奖励", true),
+            line2(string.format("本月已消费 %s 元%s", moneyText(Game.iapMonthSpent()),
+                (tonumber(limit.monthly_cny) or 0) > 0
+                    and string.format("（限额 %s 元）", moneyText(limit.monthly_cny)) or "（当前年龄段不可内购）")),
+        }, "前往商店", function()
+            local ok, Shop = pcall(require, "ui.pages.shop")
+            if ok and Shop and Shop.mount then Shop.mount() end
+        end),
+    }
+    return W.sectionCard("商店", kids, { subtitle = "支付与广告均为待接入项" })
+end
+
 local function bookSection()
     local wrong = Game.wrongList()
     local kids = {
@@ -318,6 +341,7 @@ function Court.mount()
             signinSection(),
             taskSection(),
             challengeSection(),
+            shopSection(),
             bookSection(),
             achievementSection(),
         },

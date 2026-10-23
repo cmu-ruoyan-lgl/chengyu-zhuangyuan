@@ -38,6 +38,11 @@ function M.default()
         player_id = uuid,
         realname_status = "unverified",
         age_bracket = "unknown",
+        age = 0,                     -- 实名后写入；0 = 未知（按未成年处理）
+        play_time = { day = 0, seconds = 0 },        -- 防沉迷计时（T23）
+        iap_spend = { month = "", amount = 0 },      -- 月度付费流水（T22）
+        ad_state = { last_ts = {}, levels_since = 0 },  -- 广告冷却与插屏计数（T21）
+        no_ad = false,               -- 去广告特权（内购）
         rank_id = "tongsheng",
         manor_level = 1,
         followers = {},

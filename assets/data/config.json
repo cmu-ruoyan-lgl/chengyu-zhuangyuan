@@ -38,7 +38,13 @@
       "skip": 1,
       "double": 1
     },
-    "undo_unlimited": true
+    "undo_unlimited": true,
+    "name": {
+      "hint": "提示卡",
+      "shuffle": "洗牌卡",
+      "skip": "跳过卡",
+      "double": "双倍卡"
+    }
   },
   "difficulty": {
     "segments": [
@@ -652,6 +658,7 @@
   "ad": {
     "interstitial_every_levels": 5,
     "cooldown_sec": 30,
+    "mock_duration_sec": 5,
     "personalized_for_minor": false,
     "placements": [
       {
@@ -733,7 +740,7 @@
     "realname_required": true,
     "minor_daily_minutes": 60,
     "minor_allowed_weekdays": [
-      5,
+      1,
       6,
       7
     ],
@@ -743,6 +750,9 @@
     ],
     "minor_holiday_allowed": true,
     "health_notice": "适度游戏益脑，沉迷游戏伤身。合理安排时间，享受健康生活。",
-    "age_prompt": "本游戏适合全年龄段玩家。请合理安排游戏时间。"
+    "age_prompt": "本游戏适合全年龄段玩家。请合理安排游戏时间。",
+    "default_adult_age": 25,
+    "default_minor_age": 12,
+    "holiday_dates": []
   }
 }

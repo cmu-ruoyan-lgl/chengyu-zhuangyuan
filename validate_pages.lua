@@ -1,43 +1,62 @@
--- 【临时校验入口，不入库】用来让 headless validate 覆盖府邸页与图鉴页的布局。
+-- 【页面巡检入口，随仓库保留】让 headless validate 覆盖所有页面：
+-- 登录（合规闸门）→ 棋盘 → 府邸 → 商店 → 图鉴。
 -- 用法：bash tools/verify.sh validate_pages.lua
+-- 注意：默认入口 main.lua 的 validate 只会走到登录页（未实名禁入），
+--       棋盘与各系统页的布局巡检必须靠本入口。
 
 local UI = require("urhox-libs/UI")
 local Config = require("core.config")
 local Game = require("system.game")
+local Ticker = require("ui.ticker")
 
 local frame = 0
-local switched = false
+local stage = 0
+
+local function mount(tag, modName)
+    local ok, Page = pcall(require, modName)
+    if ok and type(Page) == "table" and Page.mount then
+        Page.mount()
+        print(string.format("[validate_pages] frame %d 挂载 %s ✅", frame, tag))
+    else
+        print(string.format("[validate_pages] frame %d 挂载 %s ❌ %s", frame, tag, tostring(Page)))
+    end
+end
 
 function Start()
     Config.load()
     Game.init()
     UI.Init({ theme = "default-dark", scale = UI.Scale.DEFAULT })
 
-    local ok1, Court = pcall(require, "ui.pages.court")
-    if ok1 and Court and Court.mount then
-        Court.mount()
-        print("[validate_pages] 府邸页已挂载")
-    else
-        print("[validate_pages] 府邸页加载失败: " .. tostring(Court))
-    end
+    -- 阶段 0：未实名 → 登录/合规闸门页
+    mount("登录页", "ui.pages.login")
 
-    if _G.SubscribeToEvent ~= nil then
-        pcall(function()
-            _G.SubscribeToEvent("Update", function()
-                frame = frame + 1
-                if not switched and frame >= 20 then
-                    switched = true
-                    local ok2, BookPage = pcall(require, "ui.pages.book")
-                    if ok2 and BookPage and BookPage.mount then
-                        BookPage.mount()
-                        print("[validate_pages] 图鉴页已挂载")
-                    else
-                        print("[validate_pages] 图鉴页加载失败: " .. tostring(BookPage))
-                    end
-                end
-            end)
-        end)
-    end
+    -- 逐帧巡检：全项目统一走 ui/ticker（Update 事件是单槽的，禁止各页自行订阅）
+    Ticker.add(function(dt)
+        frame = frame + 1
+        if frame % 5 == 0 then
+            print(string.format("[validate_pages] tick frame %d stage %d dt=%.4f played=%.1fs",
+                frame, stage, dt or -1, Game.compliance().playedSeconds))
+        end
+        if stage == 0 and frame >= 10 then
+            stage = 1
+            -- 模拟实名通过（成年），进入棋盘
+            Game.setRealname(Config.num("compliance.default_adult_age", 25))
+            mount("棋盘页", "ui.pages.play")
+        elseif stage == 1 and frame >= 25 then
+            stage = 2
+            mount("府邸页", "ui.pages.court")
+        elseif stage == 2 and frame >= 40 then
+            stage = 3
+            mount("商店页", "ui.pages.shop")
+        elseif stage == 3 and frame >= 50 then
+            stage = 4
+            mount("图鉴页", "ui.pages.book")
+        elseif stage == 4 and frame >= 56 then
+            stage = 5
+            -- 回到棋盘，验证重复挂载不炸
+            mount("棋盘页（二次）", "ui.pages.play")
+        end
+    end)
 end
 
 function Stop()

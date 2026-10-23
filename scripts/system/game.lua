@@ -17,6 +17,9 @@ local Rank = require("progress.rank")
 local Manor = require("progress.manor")
 local Book = require("progress.book")
 local Achievements = require("progress.achievements")
+local Compliance = require("system.compliance")
+local Ad = require("ads.ad")
+local IAP = require("econ.iap")
 local Session = require("core.session")
 local Config = require("core.config")
 local json = require("core.json")
@@ -269,6 +272,8 @@ function settleHook(levelId, stats)
     local gained = Achievements.refresh(save)
     state.rankUp = rankUp
     state.lastAchievements = gained
+    -- 插屏计数（T21）：每 N 关一次
+    state.interstitial = Ad.noteLevelCleared(save)
 
     save.current = nil
     M.persist()
@@ -279,6 +284,7 @@ function settleHook(levelId, stats)
     reward.doubled = doubled
     reward.rankUp = rankUp
     reward.achievements = gained
+    reward.interstitial = state.interstitial
     return reward
 end
 
@@ -308,11 +314,13 @@ function M.nextLevel()
     return M.enterLevel(M.currentLevelId())
 end
 
---- 广告补体力（S1 mock，S3 接真实广告位）
+--- 广告补体力（T21 正式走广告点位，带冷却）
 function M.claimAdStamina()
-    Stamina.addByAd(state.save)
+    local ok, reason = Ad.canShow(state.save, "stamina", Time.now())
+    if not ok then return nil, reason end
+    local reward = Ad.grant(state.save, "stamina", Time.now())
     M.persist()
-    return M.stamina()
+    return M.stamina(), nil, reward
 end
 
 --- 距下次体力恢复剩余秒数
@@ -595,6 +603,125 @@ function M.finishChallenge()
     state.save.current = nil
     M.persist()
     return res
+end
+
+------------------------------------------------------------------------------
+-- S3-A：合规（T23）
+------------------------------------------------------------------------------
+
+--- 合规状态快照（UI 直接用）
+function M.compliance()
+    local save = state.save
+    local now = Time.now()
+    local ok, reason = Compliance.canPlay(save, now)
+    return {
+        required = Compliance.required(),
+        verified = Compliance.isVerified(save),
+        minor = Compliance.isMinor(save),
+        bracket = Compliance.ageBracket(save),
+        age = tonumber(save.age) or 0,
+        canPlay = ok,
+        reason = reason,
+        reasonText = reason and Compliance.reasonText(reason) or "",
+        remainingMinutes = Compliance.remainingMinutes(save, now),
+        dailyLimitMinutes = Config.num("compliance.minor_daily_minutes", 60),
+        playedSeconds = Compliance.playedSeconds(save, now),
+        notice = Compliance.healthNotice(),
+        agePrompt = Compliance.agePrompt(),
+    }
+end
+
+function M.canPlay()
+    return Compliance.canPlay(state.save, Time.now())
+end
+
+--- 实名认证结果写入（真实 SDK 回调调这里）
+function M.setRealname(age)
+    local bracket = Compliance.setVerified(state.save, age)
+    M.persist()
+    return bracket
+end
+
+--- 累计在线时长（UI 逐帧调用）
+function M.tickPlayTime(dt)
+    return Compliance.tick(state.save, dt, Time.now())
+end
+
+------------------------------------------------------------------------------
+-- S3-B：广告（T21）
+------------------------------------------------------------------------------
+
+function M.adPlacements()
+    return Ad.placements()
+end
+
+function M.adRewardText(id)
+    return Ad.rewardText(id)
+end
+
+--- 播放完成后的发奖（中途关闭不发奖，保证「免费出口」语义）
+function M.grantAd(id)
+    local reward, err = Ad.grant(state.save, id, Time.now())
+    if reward then M.persist() end
+    return reward, err
+end
+
+function M.canShowAd(id)
+    return Ad.canShow(state.save, id, Time.now())
+end
+
+function M.isNoAd()
+    return IAP.isNoAd(state.save)
+end
+
+--- 关间插屏是否该弹（弹完由 resetInterstitial 清计数）
+function M.pendingInterstitial()
+    return state.interstitial == true and not M.isNoAd()
+end
+
+function M.resetInterstitial()
+    Ad.resetInterstitial(state.save)
+    state.interstitial = false
+    M.persist()
+end
+
+------------------------------------------------------------------------------
+-- S3-C：内购（T22）
+------------------------------------------------------------------------------
+
+function M.iapProducts()
+    local out = {}
+    for _, p in ipairs(IAP.products()) do
+        local ok, reason = IAP.canBuy(state.save, p.id, Time.now())
+        out[#out + 1] = {
+            id = p.id,
+            name = p.name,
+            price_cny = tonumber(p.price_cny) or 0,
+            gold = tonumber(p.gold) or 0,
+            canBuy = ok,
+            reason = reason,
+            reasonText = ok and "" or IAP.reasonText(state.save, reason),
+        }
+    end
+    return out
+end
+
+function M.iapLimit()
+    return IAP.limit(state.save)
+end
+
+function M.iapMonthSpent()
+    return IAP.monthSpent(state.save, Time.now())
+end
+
+--- 购买（真实渠道回调后调用）。返回 { product, gold, no_ad } 或 nil,reason,text
+function M.buy(productId)
+    local res, reason = IAP.purchase(state.save, productId, Time.now())
+    if res then
+        M.persist()
+        return res
+    end
+    return nil, reason, IAP.reasonText(state.save, reason)
 end
 
 return M
