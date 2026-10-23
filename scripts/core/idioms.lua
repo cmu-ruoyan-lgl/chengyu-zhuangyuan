@@ -7,7 +7,7 @@ local util = require("core.util")
 
 local M = {}
 
-local DATA_PATH = "data/idioms.json"
+local DATA_PATH = fs.data("idioms.json")
 
 local state_ = {
     loaded = false,

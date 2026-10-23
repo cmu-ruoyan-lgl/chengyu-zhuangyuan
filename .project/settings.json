@@ -17,10 +17,11 @@
   "build": {
     "generate_fs_path": true,
     "output_dir": "../dist",
-    "asset_dirs": [
-      "../assets",
-      "../scripts"
-    ],
+        "asset_dirs": [
+            "../assets",
+            "../scripts",
+            "../data"
+        ],
     "asset_ignores": []
   },
   "@runtime": {

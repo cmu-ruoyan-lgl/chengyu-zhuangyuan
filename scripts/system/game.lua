@@ -30,7 +30,7 @@ local state = {
 
 --- 读 levels/manifest.json 的关卡总数（增量开发：当前 150 关）
 local function loadMaxLevel()
-    local text = fs.readText("data/levels/manifest.json")
+    local text = fs.readText(fs.data("levels/manifest.json"))
     if not text then return 150 end
     local ok, data = pcall(json.decode, text)
     if ok and type(data) == "table" and tonumber(data.count) then

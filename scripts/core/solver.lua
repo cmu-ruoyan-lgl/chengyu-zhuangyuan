@@ -5,12 +5,13 @@
 local util = require("core.util")
 local Grid = require("core.grid")
 local Idioms = require("core.idioms")
+local fs = require("core.fs")
 
 local Solver = {}
 
 --- 取题库（失败则退化为纯逻辑推导，不影响判定可用性）
 local function idiomPool()
-    local ok = pcall(Idioms.init, "data/idioms.json")
+    local ok = pcall(Idioms.init, fs.data("idioms.json"))
     if not ok then return nil end
     return Idioms.all()
 end

@@ -25,7 +25,9 @@ local enabled_ = true
 function M.init(opts)
     enabled_ = not (opts and opts.sound == false)
     if not enabled_ then return false, "muted" end
-    if type(_G.Scene) ~= "table" or type(_G.cache) ~= "table" then
+    -- 引擎类的全局绑定类型因平台而异（table/userdata），只判存在性，
+    -- 构造是否可用交给下方 pcall 兜底。
+    if _G.Scene == nil or type(_G.cache) ~= "table" then
         return false, "no_engine"
     end
     local ok, err = pcall(function()

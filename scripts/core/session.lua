@@ -13,9 +13,9 @@ local Solver = require("core.solver")
 local Session = {}
 Session.__index = Session
 
---- 关卡文件路径：data/levels/0001.json
+--- 关卡文件路径：打包运行时 data/ 挂载到资源根（levels/0001.json），离线带 data/ 前缀
 local function levelPath(levelId)
-    return string.format("data/levels/%04d.json", tonumber(levelId) or 0)
+    return fs.data(string.format("levels/%04d.json", tonumber(levelId) or 0))
 end
 
 --- 读取关卡（引擎内走资源目录，离线走 io）

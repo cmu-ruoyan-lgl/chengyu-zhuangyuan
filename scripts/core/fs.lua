@@ -15,6 +15,17 @@ function M.inEngine()
     return type(_G.File) == "table" and type(_G.fileSystem) ~= "nil"
 end
 
+--- data/ 目录资源的运行时路径。
+--- 打包/引擎播放器（io 被移除）：asset_dirs 内容挂载到资源根（目录名被剥掉），
+---   data/config.json 的 fs_path 是 "config.json"；
+--- 离线 lua54 与本地 tool_mode（io 可用，readText 走 io 直读项目根）：需要 "data/" 前缀。
+function M.data(rel)
+    if hasIo then
+        return "data/" .. rel
+    end
+    return rel
+end
+
 --- 读取文本文件；失败返回 nil 与原因
 function M.readText(path)
     if hasIo then

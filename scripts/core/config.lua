@@ -7,7 +7,7 @@ local fs = require("core.fs")
 
 local M = {}
 
-local DATA_PATH = "data/config.json"
+local DATA_PATH = fs.data("config.json")
 local cache_ = nil
 
 --- 加载（幂等）。失败时返回 nil + 原因，由调用方决定是否降级。
