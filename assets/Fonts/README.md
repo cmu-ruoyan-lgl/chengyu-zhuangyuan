@@ -4,8 +4,8 @@
 
 | 文件 | 内容 | 许可 | 用途 |
 |---|---|---|---|
-| `NotoSansSC-Regular.ttf` | Noto Sans SC Regular，3500 汉字子集 | **SIL OFL 1.1** | 项目主字体，可随包分发 |
-| `NotoSansSC-Bold.ttf` | Noto Sans SC Bold，3500 汉字子集 | **SIL OFL 1.1** | 真实粗体（可随包分发） |
+| `NotoSansSC-Regular.ttf` | Noto Sans SC Regular，9357 字形子集（GB2312 全 6763 字 ∪ 题库 ∪ UI 文案） | **SIL OFL 1.1** | 项目主字体，可随包分发 |
+| `NotoSansSC-Bold.ttf` | Noto Sans SC Bold，同上字集 | **SIL OFL 1.1** | 真实粗体（可随包分发） |
 | `MiSans-Regular.ttf` | **上两个文件的副本** | 同上 | 引擎硬编码的全局兜底路径 |
 | `MiSans-Bold.ttf` | **上两个文件的副本** | 同上 | 引擎硬编码的全局兜底粗体路径 |
 
@@ -53,3 +53,9 @@ cp assets/Fonts/NotoSansSC-Bold.ttf    assets/Fonts/MiSans-Bold.ttf
 3. 字重是**真实存在**的（包内 100–900 共 9 个字重）。但引擎库
    `urhox-libs/UI/Core/UI.lua:475` 曾把 `sans-bold` 写成指向 Regular 的 Placeholder，
    所以**设计上仍不依赖字重区分层级**（用字号/字色/底色块/描边）。
+
+### ⚠️ 子集字集教训（2026-10-23，RISK S1-12）
+
+初版按**码点序**截断前 3500 字，把「第/金/马/心」等超高频字切掉（常用字码点分散），
+远端满屏豆腐块。现改为 `GB2312 全 6763 字 ∪ assets/data/idioms.json(word 字段) ∪ scripts/**/*.lua 中文字`，
+由 `tools/build_verification_font.py` 生成。**新增 UI 文案/题库生僻字后必须重跑该脚本**。

@@ -10,6 +10,7 @@ globals = {
     -- NanoVG（引擎注册的全局 C API）
     "nvgCreate", "nvgDelete", "nvgCreateFont", "nvgBeginFrame", "nvgEndFrame",
     "nvgFontSize", "nvgFontFaceId", "nvgFillColor", "nvgRGBA", "nvgText",
+    "nvgFontFace",
     -- 引擎子系统（core/fs.lua 里做能力探测用）
     "File", "fileSystem", "cache", "graphics", "FILE_READ", "FILE_WRITE",
     "SCAN_FILES", "SCAN_DIRS", "SCAN_ALL",

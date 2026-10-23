@@ -40,13 +40,18 @@ function M.readText(path)
 
     -- 引擎：先试资源目录（随包数据），再试用户沙箱（存档）。
     -- 引擎绑定是 userdata，不做 type 守卫，一律 pcall。
+    -- 注意：GetFile 对不存在的资源会落 ERROR 日志，先用 Exists 挡一道
+    -- （save.json 这类沙箱文件不是包内资源，直接 GetFile 会刷错误日志）。
     if _G.cache then
-        local ok, file = pcall(function() return _G.cache:GetFile(path) end)
-        if ok and file then
-            local okRead, content = pcall(function() return file:ReadString() end)
-            pcall(function() file:Close() end)
-            if okRead and type(content) == "string" and #content > 0 then
-                return content
+        local okE, inPkg = pcall(function() return _G.cache:Exists(path) end)
+        if okE and inPkg then
+            local ok, file = pcall(function() return _G.cache:GetFile(path) end)
+            if ok and file then
+                local okRead, content = pcall(function() return file:ReadString() end)
+                pcall(function() file:Close() end)
+                if okRead and type(content) == "string" and #content > 0 then
+                    return content
+                end
             end
         end
     end
