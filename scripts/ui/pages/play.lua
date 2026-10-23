@@ -10,6 +10,12 @@ local Game = require("system.game")
 local SFX = require("system.audio")
 local Warm = require("system.glyphwarm")
 local FX = require("ui.fx")
+local W = require("ui.widgets")
+
+-- 样式/组件统一走 ui/widgets（与府邸页、图鉴页共享同一套漆底描金风格）
+local pct, c, withAlpha, shadow, pieceShadow, anim =
+    W.pct, W.c, W.withAlpha, W.shadow, W.pieceShadow, W.anim
+local chip, pillButton = W.chip, W.pillButton
 
 local Play = {}
 
@@ -32,46 +38,13 @@ local refs = {
     clear = nil,
     clearCard = nil,
     clearReward = nil,
+    clearCards = nil,
+    challengeChip = nil,
 }
 
 ------------------------------------------------------------------------------
 -- 工具
 ------------------------------------------------------------------------------
-
-local function pct(x)
-    return string.format("%.4f%%", x * 100)
-end
-
---- 数值/颜色/比例统一走 config
-local function c(key, default)
-    return Config.color("ui.color." .. key, default or { 0, 0, 0, 255 })
-end
-
-local function withAlpha(color, alpha)
-    return { color[1], color[2], color[3], alpha }
-end
-
---- 投影（卡片/棋子统一风格）
-local function shadow(blur, y, alpha, colorKey)
-    local col = colorKey and c(colorKey) or { 0, 0, 0, 255 }
-    return { { x = 0, y = y or 6, blur = blur or 18, spread = 0,
-               color = withAlpha(col, alpha or 90) } }
-end
-
---- 棋子/字块基础质感：落影 + 顶部内高光
-local function pieceShadow()
-    return {
-        { x = 0, y = 3, blur = 8, spread = 0, color = { 60, 40, 20, 60 } },
-        { x = 0, y = 2, blur = 0, spread = 0, color = { 255, 255, 255, 60 }, inset = true },
-    }
-end
-
---- 跑一个关键帧动画（失败静默降级为静态呈现）
-local function anim(widget, config)
-    if not widget or not widget.Animate then return false end
-    local ok = pcall(function() widget:Animate(config) end)
-    return ok
-end
 
 ------------------------------------------------------------------------------
 -- 单元格样式
@@ -152,86 +125,21 @@ local function popCell(r, col)
 end
 
 ------------------------------------------------------------------------------
--- 组件：胶囊 / 按钮
-------------------------------------------------------------------------------
-
---- 顶栏信息胶囊（漆底 + 描金边）
-local function chip(label, opts)
-    opts = opts or {}
-    local fontSize = opts.fontSize or Theme.font("topbar", 26) * 0.85
-    local dot = nil
-    if opts.dotColor then
-        dot = UI.Panel {
-            width = 18, height = 18,
-            borderRadius = 9,
-            backgroundColor = opts.dotColor,
-            marginRight = 10,
-        }
-    end
-    local text = UI.Label {
-        text = label,
-        fontSize = fontSize,
-        fontColor = opts.fg or c("text_light"),
-        fontWeight = opts.bold and "bold" or nil,
-        flexShrink = 1,
-    }
-    local kids = {}
-    if dot then kids[#kids + 1] = dot end
-    kids[#kids + 1] = text
-    return UI.Panel {
-        flexDirection = "row",
-        alignItems = "center",
-        paddingHorizontal = 16,
-        paddingVertical = 4,
-        flexShrink = 1,
-        borderRadius = 28,
-        backgroundColor = opts.bg or c("chip_bg"),
-        borderWidth = 2,
-        borderColor = opts.border or c("chip_edge"),
-        boxShadow = shadow(10, 3, 70, opts.glow),
-        children = kids,
-    }
-end
-
---- 道具胶囊按钮（描金渐变 + 投影）
-local function pillButton(text, onTap, opts)
-    opts = opts or {}
-    return UI.Button {
-        text = text,
-        fontSize = Theme.font("toolbar", 28),
-        flexGrow = opts.grow or 1,
-        marginHorizontal = 7,
-        paddingVertical = 14,
-        borderRadius = 30,
-        backgroundColor = opts.bg or c("gold_deep"),
-        backgroundGradient = opts.gradient or {
-            direction = "to-bottom",
-            from = c("gold"),
-            to = c("gold_deep"),
-        },
-        textColor = opts.fg or c("ink"),
-        fontWeight = "bold",
-        boxShadow = {
-            { x = 0, y = 6, blur = 16, spread = 0, color = withAlpha(c(opts.glow or "gold_dark"), 130) },
-            { x = 0, y = 2, blur = 0, spread = 0, color = { 255, 248, 230, 90 }, inset = true },
-        },
-        borderWidth = 2,
-        borderColor = c("gold_dark"),
-        onClick = onTap,
-    }
-end
-
-------------------------------------------------------------------------------
 -- 构建：顶栏 / 进度条 / 棋盘 / 备选区 / 道具栏 / 横幅
 ------------------------------------------------------------------------------
 
 local function buildTopBar(session)
-    refs.levelChip = chip(session and ("第 " .. tostring(session.levelId) .. " 关") or "成语小秀才", {
+    local isChallenge = (Game.mode() == "challenge")
+    refs.levelChip = chip(isChallenge and "每日挑战"
+        or (session and ("第 " .. tostring(session.levelId) .. " 关") or "成语小秀才"), {
         bg = c("gold_deep"), border = c("gold_dark"), fg = c("ink"), bold = true,
         glow = "gold",
     })
     refs.topStamina = chip("体力 --", { dotColor = c("jade") })
     refs.topGold = chip("金币 --", { dotColor = c("coin"), fg = c("gold") })
+    -- 挑战倒计时（仅挑战模式可见，由 Play.tick 每秒刷新）
+    refs.challengeChip = chip("剩余 --", { dotColor = c("seal"), fg = c("text_light") })
+    if not isChallenge then refs.challengeChip:SetVisible(false) end
 
     return UI.Panel {
         width = "100%",
@@ -246,7 +154,7 @@ local function buildTopBar(session)
                 bg = withAlpha(c("chip_bg"), 235),
                 border = c("gold_dark"), fg = c("gold"), bold = true, glow = "gold_dark",
             }),
-            refs.levelChip, refs.topStamina, refs.topGold,
+            refs.levelChip, refs.challengeChip, refs.topStamina, refs.topGold,
         },
     }
 end
@@ -450,7 +358,27 @@ local function buildBank(session)
 end
 
 local function buildToolBar(session)
+    local isChallenge = (Game.mode() == "challenge")
     refs.hintBtn = pillButton("提示", function() Play.onHint() end)
+    -- 府邸入口（S2：官职/门客/签到/图鉴/挑战都在这里）
+    local courtBtn = pillButton("府邸", function() Play.openCourt() end, {
+        gradient = { direction = "to-bottom", from = c("jade"), to = c("jade_deep") },
+        fg = c("cream"),
+        glow = "jade_deep",
+    })
+    local shuffleBtn = pillButton("洗牌", function() Play.onShuffle() end)
+    -- 挑战模式：交卷提前结束并结算（限时到也会自动结算）
+    local challengeBtn = pillButton("交卷", function() Play.onFinishChallenge() end, {
+        gradient = { direction = "to-bottom", from = c("seal"), to = c("seal_deep") },
+        fg = c("cream"),
+        glow = "seal_deep",
+    })
+    if isChallenge then
+        courtBtn:SetVisible(false)
+        shuffleBtn:SetVisible(false)
+    else
+        challengeBtn:SetVisible(false)
+    end
     refs.nextBtn = UI.Button {
         text = "下一关",
         fontSize = Theme.font("toolbar", 28),
@@ -492,14 +420,26 @@ local function buildToolBar(session)
                 alignItems = "center",
                 justifyContent = "center",
                 children = {
+                    challengeBtn,
+                    courtBtn,
                     refs.hintBtn,
                     pillButton("撤销", function() Play.onUndo() end),
-                    pillButton("洗牌", function() Play.onShuffle() end),
+                    shuffleBtn,
                     refs.nextBtn,
                 },
             },
         },
     }
+end
+
+--- 打开府邸页（S2 系统总入口：官职/门客/签到/图鉴/挑战）
+function Play.openCourt()
+    local ok, Court = pcall(require, "ui.pages.court")
+    if ok and type(Court) == "table" and Court.mount then
+        Court.mount()
+    else
+        showBanner("府邸页加载失败", "seal")
+    end
 end
 
 ------------------------------------------------------------------------------
@@ -598,6 +538,18 @@ local function buildClearOverlay()
         textAlign = "center",
     }
 
+    -- 释义卡（T18）：结算页直接看本关成语的释义与出处
+    local cardH = Config.num("ui.clear_card_area_height", 300)
+    refs.clearCards = UI.ScrollView {
+        width = "100%",
+        height = cardH,
+        flexBasis = 0,
+        scrollY = true,
+        showScrollbar = true,
+        marginTop = 20,
+        children = {},
+    }
+
     refs.clearCard = UI.Panel {
         width = "84%",
         borderRadius = 36,
@@ -620,6 +572,7 @@ local function buildClearOverlay()
                 marginTop = 26,
             },
             refs.clearReward,
+            refs.clearCards,
             UI.Panel {
                 width = "100%",
                 flexDirection = "row",
@@ -659,9 +612,49 @@ function Play.hideClear()
     if refs.clear then refs.clear:SetVisible(false) end
 end
 
+--- 把本关成语填进结算页的释义卡区（T18）
+local function fillClearCards(cards)
+    local box = refs.clearCards
+    if not box or not box.ClearChildren then return end
+    box:ClearChildren()
+    if not cards or #cards == 0 then return end
+    for _, card in ipairs(cards) do
+        local lines = { card.word }
+        if card.pinyin and card.pinyin ~= "" then
+            lines[#lines + 1] = card.pinyin
+        end
+        lines[#lines + 1] = "释义：" .. (card.meaning ~= "" and card.meaning or "暂无")
+        if card.source and card.source ~= "" then
+            lines[#lines + 1] = "出处：" .. card.source
+        end
+        local kids = {}
+        for i, line in ipairs(lines) do
+            kids[#kids + 1] = UI.Label {
+                text = line,
+                fontSize = (i == 1) and Theme.font("toolbar", 28) or Theme.font("caption", 24),
+                fontColor = (i == 1) and c("ink") or c("ink_dim"),
+                fontWeight = (i == 1) and "bold" or nil,
+                width = "100%",
+            }
+        end
+        box:AddChild(UI.Panel {
+            width = "100%",
+            borderRadius = 18,
+            backgroundColor = withAlpha(c("bank_block"), 235),
+            borderWidth = 2,
+            borderColor = c("panel_edge"),
+            paddingHorizontal = 18,
+            paddingVertical = 12,
+            marginBottom = 10,
+            children = kids,
+        })
+    end
+end
+
 local function showClearOverlay(text)
     if not refs.clear then return end
     if refs.clearReward then refs.clearReward:SetStyle({ text = text }) end
+    fillClearCards(Game.sessionCards())
     refs.clear:SetVisible(true)
     anim(refs.clearCard, {
         keyframes = {
@@ -895,6 +888,58 @@ function Play.onGateWait()
 end
 
 ------------------------------------------------------------------------------
+-- 每日挑战：倒计时与交卷（T20）
+------------------------------------------------------------------------------
+
+local lastShownLeft_ = -1
+local tickHooked_ = false
+
+--- 逐帧钩子（仅挑战模式生效）：刷新倒计时，归零自动交卷
+function Play.tick()
+    if Game.mode() ~= "challenge" then return end
+    local left = Game.challengeLeft()
+    local sec = math.max(0, math.ceil(left))
+    if sec ~= lastShownLeft_ then
+        lastShownLeft_ = sec
+        W.chipText(refs.challengeChip, string.format("剩余 %ds", sec))
+    end
+    if left <= 0 then
+        Play.onFinishChallenge()
+    end
+end
+
+--- 订阅引擎 Update（拿不到就退回「交互时刷新」的降级通路）
+local function hookTick()
+    if tickHooked_ then return end
+    if _G.SubscribeToEvent == nil then return end
+    local ok = pcall(function()
+        _G.SubscribeToEvent("Update", function() Play.tick() end)
+    end)
+    tickHooked_ = (ok == true)
+    print("[play] 逐帧钩子 " .. (tickHooked_ and "已挂载" or "不可用（降级为交互刷新）"))
+end
+
+--- 展示挑战结果（res 来自 Challenge.finish，已在结算时发放奖励）
+local function showChallengeResult(res)
+    if not res then return end
+    local text = string.format("挑战结束：%d/%d 词，金币 +%d", res.idioms or 0, res.target or 0, res.gold or 0)
+    if res.allDone then text = text .. "（全部达成）" end
+    if refs.nextBtn then refs.nextBtn:SetVisible(false) end
+    if refs.challengeChip then refs.challengeChip:SetVisible(false) end
+    showClearOverlay(text)
+end
+
+--- 主动交卷 / 超时自动交卷
+function Play.onFinishChallenge()
+    if Game.mode() ~= "challenge" then return end
+    local res = Game.finishChallenge()
+    if res then
+        lastShownLeft_ = -1
+        showChallengeResult(res)
+    end
+end
+
+------------------------------------------------------------------------------
 -- 事件 → 反馈通道（DEV §10.3 / PRD §3.3.3）
 ------------------------------------------------------------------------------
 
@@ -934,6 +979,12 @@ local function hookSessionEvents(s)
     s:on("on_level_cleared", function(p)
         SFX.play("level_win")
         Play.refresh()
+        -- 挑战模式：Session 的 settle 已走完 Challenge.finish，这里只展示结果，
+        -- 绝不重复结算（会二次发奖）
+        if Game.mode() == "challenge" then
+            showChallengeResult(p.reward)
+            return
+        end
         local gold = (p.reward and p.reward.gold) or 0
         local streak = (p.reward and p.reward.streak) or 0
         local mult = (p.reward and p.reward.streakMultiplier) or 1
@@ -1004,6 +1055,8 @@ function Play.mount(_, opts)
     UI.SetRoot(root, true)
 
     if s then hookSessionEvents(s) end
+    hookTick()
+    Play.tick()
     Play.refresh()
 
     if gated then

@@ -161,6 +161,7 @@
     "cell_gap": 8,
     "cell_radius": 12,
     "bank_block_min": 88,
+    "clear_card_area_height": 300,
     "layout_ratio": {
       "topbar": 0.088,
       "progress": 0.014,

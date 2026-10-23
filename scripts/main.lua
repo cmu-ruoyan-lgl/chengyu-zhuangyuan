@@ -10,50 +10,6 @@ local Play = require("ui.pages.play")
 local booted = false
 
 function Start()
-    -- 【临时诊断】探测资源路径映射（远端 runtime.log 可见）。
-    -- 注意：wasm 端引擎全局绑定是 userdata 而非 table，禁止 type()=="table" 判断，
-    -- 一律 pcall 兜底。
-    do
-        local function try(tag, fn)
-            local ok, res = pcall(fn)
-            if ok then
-                print(string.format("[probe] %s => %s", tag, tostring(res)))
-            else
-                print(string.format("[probe] %s => ERR %s", tag, tostring(res)))
-            end
-            return ok and res or nil
-        end
-        -- 1) 候选路径 Exists 探测（比 GetFile 轻量，不落错误日志）
-        for _, p in ipairs({
-            "data/config.json", "assets/data/config.json", "config.json",
-            "Data/config.json", "data/levels/0001.json", "levels/0001.json",
-            "Sounds/fill_ok.wav", "assets/Sounds/fill_ok.wav",
-            "Fonts/MiSans-Regular.ttf", "fonts/MiSans-Regular.ttf",
-        }) do
-            try("exists:" .. p, function() return cache:Exists(p) end)
-        end
-        -- 3) 目录列举：直接看打包内各目录有什么（绕过 GetFile 语义）
-        for _, d in ipairs({ "", "data/", "assets/", "Sounds/", "Fonts/", "levels/" }) do
-            try("ls:" .. d, function()
-                local files = fileSystem:ScanDir(d, "*", SCAN_ALL or 3, false)
-                local n = 0
-                local first = ""
-                if files then
-                    for _, name in ipairs(files) do
-                        n = n + 1
-                        if first == "" then first = tostring(name) end
-                    end
-                end
-                return string.format("count=%d first=%s", n, first)
-            end)
-        end
-        try("globals", function()
-            return string.format("Scene=%s io=%s cache=%s fileSystem=%s",
-                tostring(_G.Scene ~= nil), tostring(io ~= nil),
-                tostring(_G.cache ~= nil), tostring(_G.fileSystem ~= nil))
-        end)
-    end
-
     local okCfg, errCfg = Config.load()
     if not okCfg then
         print("[main] 配置加载失败: " .. tostring(errCfg))
