@@ -10,9 +10,10 @@ local M = {}
 
 local hasIo = type(io) == "table" and type(io.open) == "function"
 
---- 判断当前是否在引擎运行时内
+--- 判断当前是否在引擎运行时内。
+--- 注意：wasm 端引擎全局绑定是 userdata 而非 table，禁止 type()=="table" 判断。
 function M.inEngine()
-    return type(_G.File) == "table" and type(_G.fileSystem) ~= "nil"
+    return _G.File ~= nil and _G.fileSystem ~= nil
 end
 
 --- data/ 资源的运行时路径。
@@ -37,26 +38,33 @@ function M.readText(path)
         return content
     end
 
-    -- 引擎：先试资源目录（随包数据），再试用户沙箱（存档）
-    if type(_G.cache) == "table" and type(_G.cache.GetFile) == "function" then
+    -- 引擎：先试资源目录（随包数据），再试用户沙箱（存档）。
+    -- 引擎绑定是 userdata，不做 type 守卫，一律 pcall。
+    if _G.cache then
         local ok, file = pcall(function() return _G.cache:GetFile(path) end)
-        if ok and file and (file:IsOpen() or (file.Open and true)) then
+        if ok and file then
             local okRead, content = pcall(function() return file:ReadString() end)
+            pcall(function() file:Close() end)
             if okRead and type(content) == "string" and #content > 0 then
-                if file.Close then file:Close() end
                 return content
             end
-            if file.Close then file:Close() end
         end
     end
 
-    if type(_G.fileSystem) == "table" and _G.fileSystem.FileExists
-        and _G.fileSystem:FileExists(path) then
-        local file = _G.File(path, _G.FILE_READ)
-        if file and file:IsOpen() then
-            local content = file:ReadString()
-            file:Close()
-            return content
+    if _G.fileSystem and _G.File then
+        local okEx, exists = pcall(function() return _G.fileSystem:FileExists(path) end)
+        if okEx and exists then
+            local okF, file = pcall(function() return _G.File(path, _G.FILE_READ) end)
+            if okF and file then
+                local okR, content = pcall(function()
+                    if file:IsOpen() then return file:ReadString() end
+                    return nil
+                end)
+                pcall(function() file:Close() end)
+                if okR and type(content) == "string" and #content > 0 then
+                    return content
+                end
+            end
         end
     end
 
@@ -106,8 +114,9 @@ function M.exists(path)
         if f then f:close(); return true end
         return false
     end
-    if type(_G.fileSystem) == "table" and _G.fileSystem.FileExists then
-        return _G.fileSystem:FileExists(path)
+    if _G.fileSystem then
+        local ok, res = pcall(function() return _G.fileSystem:FileExists(path) end)
+        return ok and res == true
     end
     return false
 end

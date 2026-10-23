@@ -143,7 +143,7 @@ end
 
 --- 同步到云。不登录 / 无 clientCloud / 超时均静默失败，不阻塞游戏。
 function M.cloudSync(save)
-    if type(_G.clientCloud) ~= "table" then return false, "no_client_cloud" end
+    if _G.clientCloud == nil then return false, "no_client_cloud" end
     local ok, err = pcall(function()
         _G.clientCloud:Set(M.CLOUD_KEY, json.encode(save))
     end)
@@ -155,7 +155,7 @@ end
 --- callback(remoteSave | nil)
 function M.cloudLoad(callback)
     if type(callback) ~= "function" then return false, "no_callback" end
-    if type(_G.clientCloud) ~= "table" then callback(nil); return false, "no_client_cloud" end
+    if _G.clientCloud == nil then callback(nil); return false, "no_client_cloud" end
     local ok, err = pcall(function()
         _G.clientCloud:Get(M.CLOUD_KEY, {
             ok = function(values)

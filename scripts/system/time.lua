@@ -10,7 +10,7 @@ local testNow_ = nil
 --- 当前 Unix 秒
 function M.now()
     if testNow_ then return testNow_ end
-    if type(_G.common) == "table" then
+    if _G.common ~= nil then
         local ok, v = pcall(function() return _G.common.get_server_time() end)
         if ok and type(v) == "number" and v > 0 then
             return v

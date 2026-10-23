@@ -23,22 +23,7 @@ function Start()
             end
             return ok and res or nil
         end
-        -- 1) 资源根挂载点列表（最重要：看打包后资源挂在哪）
-        try("resource_dirs", function()
-            local dirs = cache:GetResourceDirs()
-            local acc = {}
-            for i = 0, (dirs and #dirs or 0) do
-                if dirs[i] or (dirs.get and dirs:get(i)) then
-                    acc[#acc + 1] = tostring(dirs[i] or dirs:get(i))
-                end
-            end
-            if #acc == 0 and dirs then
-                -- VariantVector 迭代兜底
-                for _, d in ipairs(dirs) do acc[#acc + 1] = tostring(d) end
-            end
-            return table.concat(acc, " | ")
-        end)
-        -- 2) 候选路径 Exists 探测（比 GetFile 轻量，不落错误日志）
+        -- 1) 候选路径 Exists 探测（比 GetFile 轻量，不落错误日志）
         for _, p in ipairs({
             "data/config.json", "assets/data/config.json", "config.json",
             "Data/config.json", "data/levels/0001.json", "levels/0001.json",

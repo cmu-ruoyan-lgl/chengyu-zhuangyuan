@@ -12,6 +12,7 @@ globals = {
     "nvgFontSize", "nvgFontFaceId", "nvgFillColor", "nvgRGBA", "nvgText",
     -- 引擎子系统（core/fs.lua 里做能力探测用）
     "File", "fileSystem", "cache", "graphics", "FILE_READ", "FILE_WRITE",
+    "SCAN_FILES", "SCAN_DIRS", "SCAN_ALL",
     -- 引擎子系统（S1 新增：权威时间 / 音频 / 云存档）
     "common", "Scene", "clientCloud",
     -- 引擎 JSON（core/json.lua 优先走 cjson）
