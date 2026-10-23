@@ -101,18 +101,11 @@ tools/
 urhox-libs/
 # <<< TapTap Maker AI dev kit (local only) <<<
 # --- 项目自建（覆盖 ai-dev-kit 对上述目录的忽略） ---
-# 自建工具脚本必须入库
-!/tools/
-/tools/*
-!/tools/*.sh
-!/tools/*.py
-!/tools/*.mjs
-#!/tools/*.md
-
+# 注意：tools/ 是平台资源入口（远端 pre-receive 钩子禁止跟踪），
+# 本地工具脚本（verify.sh 等）保留在磁盘但不入库。
 # Agent 会话与记忆目录（本地状态，不入库）
 .workbuddy/
 .maker-mcp/
-#!/tools/*.md
 
 # S1 存档：tool_mode 下引擎 File 写在项目根（真机沙箱不受影响）
 /save.json
