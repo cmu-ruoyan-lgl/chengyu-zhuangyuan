@@ -1,0 +1,2466 @@
+{
+  "meta": {
+    "version": 1,
+    "count": 189,
+    "note": "M1 种子题库，T8 将扩充至 800+ 条 L1 与全量 3800 条"
+  },
+  "items": [
+    {
+      "id": "i0001",
+      "word": "一马当先",
+      "pinyin": "yī mǎ dāng xiān",
+      "meaning": "作战或做事走在最前面，带头领先。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0002",
+      "word": "马到成功",
+      "pinyin": "mǎ dào chéng gōng",
+      "meaning": "祝人一到就取得胜利或成功。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0003",
+      "word": "一心一意",
+      "pinyin": "yì xīn yí yì",
+      "meaning": "心思、意念专一，没有杂念。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0004",
+      "word": "三心二意",
+      "pinyin": "sān xīn èr yì",
+      "meaning": "犹豫不决，或心思不专一。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0005",
+      "word": "四面八方",
+      "pinyin": "sì miàn bā fāng",
+      "meaning": "指周围各个方向，各处。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0006",
+      "word": "五光十色",
+      "pinyin": "wǔ guāng shí sè",
+      "meaning": "形容色泽鲜艳，花样繁多。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0007",
+      "word": "七上八下",
+      "pinyin": "qī shàng bā xià",
+      "meaning": "形容心里慌乱不安。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0008",
+      "word": "九牛一毛",
+      "pinyin": "jiǔ niú yì máo",
+      "meaning": "比喻极大数量中微不足道的一点。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0009",
+      "word": "十全十美",
+      "pinyin": "shí quán shí měi",
+      "meaning": "各方面都完美无缺。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0010",
+      "word": "百发百中",
+      "pinyin": "bǎi fā bǎi zhòng",
+      "meaning": "形容射击非常准，也比喻做事有把握。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0011",
+      "word": "千军万马",
+      "pinyin": "qiān jūn wàn mǎ",
+      "meaning": "形容兵马众多，声势浩大。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0012",
+      "word": "万众一心",
+      "pinyin": "wàn zhòng yī xīn",
+      "meaning": "千万人一条心，团结一致。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0013",
+      "word": "千言万语",
+      "pinyin": "qiān yán wàn yǔ",
+      "meaning": "形容要说的话很多。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0014",
+      "word": "万紫千红",
+      "pinyin": "wàn zǐ qiān hóng",
+      "meaning": "形容百花齐放，色彩艳丽。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0015",
+      "word": "一鸣惊人",
+      "pinyin": "yì míng jīng rén",
+      "meaning": "平时默默无闻，一下子做出惊人的事。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0016",
+      "word": "一举两得",
+      "pinyin": "yī jǔ liǎng dé",
+      "meaning": "做一件事得到两方面的好处。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0017",
+      "word": "三言两语",
+      "pinyin": "sān yán liǎng yǔ",
+      "meaning": "很少的几句话。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0018",
+      "word": "五颜六色",
+      "pinyin": "wǔ yán liù sè",
+      "meaning": "形容色彩复杂多样。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0019",
+      "word": "七零八落",
+      "pinyin": "qī líng bā luò",
+      "meaning": "形容零散杂乱，不成样子。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0020",
+      "word": "十拿九稳",
+      "pinyin": "shí ná jiǔ wěn",
+      "meaning": "比喻很有把握。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "数字"
+      ]
+    },
+    {
+      "id": "i0021",
+      "word": "人山人海",
+      "pinyin": "rén shān rén hǎi",
+      "meaning": "形容聚集的人极多。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0022",
+      "word": "山清水秀",
+      "pinyin": "shān qīng shuǐ xiù",
+      "meaning": "形容山水风景清丽秀美。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0023",
+      "word": "水落石出",
+      "pinyin": "shuǐ luò shí chū",
+      "meaning": "水退石头露出，比喻真相彻底显露。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0024",
+      "word": "花好月圆",
+      "pinyin": "huā hǎo yuè yuán",
+      "meaning": "比喻美好圆满的生活。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0025",
+      "word": "风和日丽",
+      "pinyin": "fēng hé rì lì",
+      "meaning": "微风和暖，阳光明媚。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0026",
+      "word": "春暖花开",
+      "pinyin": "chūn nuǎn huā kāi",
+      "meaning": "春天气候温暖，百花盛开。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0027",
+      "word": "花红柳绿",
+      "pinyin": "huā hóng liǔ lǜ",
+      "meaning": "形容春天花木繁盛、色彩鲜艳。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0028",
+      "word": "绿水青山",
+      "pinyin": "lǜ shuǐ qīng shān",
+      "meaning": "碧绿的水，青翠的山，指优美景色。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0029",
+      "word": "山高水长",
+      "pinyin": "shān gāo shuǐ cháng",
+      "meaning": "比喻人品高洁，影响深远。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0030",
+      "word": "日积月累",
+      "pinyin": "rì jī yuè lěi",
+      "meaning": "长时间一点一滴地积累。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0031",
+      "word": "月明星稀",
+      "pinyin": "yuè míng xīng xī",
+      "meaning": "月色明亮，星光稀疏。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0032",
+      "word": "秋高气爽",
+      "pinyin": "qiū gāo qì shuǎng",
+      "meaning": "形容秋天天空晴朗、空气清爽。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0033",
+      "word": "冰天雪地",
+      "pinyin": "bīng tiān xuě dì",
+      "meaning": "形容天气极冷，冰雪遍地。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0034",
+      "word": "雪中送炭",
+      "pinyin": "xuě zhōng sòng tàn",
+      "meaning": "比喻在别人急需时给予帮助。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0035",
+      "word": "锦上添花",
+      "pinyin": "jǐn shàng tiān huā",
+      "meaning": "比喻在美好的基础上再增添美好。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0036",
+      "word": "海阔天空",
+      "pinyin": "hǎi kuò tiān kōng",
+      "meaning": "形容境界开阔，也指说话漫无边际。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0037",
+      "word": "空中楼阁",
+      "pinyin": "kōng zhōng lóu gé",
+      "meaning": "比喻虚幻不实或脱离实际的东西。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0038",
+      "word": "天高气爽",
+      "pinyin": "tiān gāo qì shuǎng",
+      "meaning": "天空高远，空气清爽。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0039",
+      "word": "风平浪静",
+      "pinyin": "fēng píng làng jìng",
+      "meaning": "没有风浪，比喻平静无事。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0040",
+      "word": "波光粼粼",
+      "pinyin": "bō guāng lín lín",
+      "meaning": "形容水波明净闪动。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "自然"
+      ]
+    },
+    {
+      "id": "i0041",
+      "word": "出人头地",
+      "pinyin": "chū rén tóu dì",
+      "meaning": "超出一般人，高人一等。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0042",
+      "word": "争先恐后",
+      "pinyin": "zhēng xiān kǒng hòu",
+      "meaning": "争着向前，唯恐落后。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0043",
+      "word": "后来居上",
+      "pinyin": "hòu lái jū shàng",
+      "meaning": "后起的人或事物超过先前的。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0044",
+      "word": "上行下效",
+      "pinyin": "shàng xíng xià xiào",
+      "meaning": "上面怎么做，下面就跟着学。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0045",
+      "word": "名副其实",
+      "pinyin": "míng fù qí shí",
+      "meaning": "名声或名称与实际相符。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0046",
+      "word": "实事求是",
+      "pinyin": "shí shì qiú shì",
+      "meaning": "按照实际情况办事，不夸大不缩小。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0047",
+      "word": "事在人为",
+      "pinyin": "shì zài rén wéi",
+      "meaning": "事情的成功全在于人努力去做。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0048",
+      "word": "为所欲为",
+      "pinyin": "wéi suǒ yù wéi",
+      "meaning": "想干什么就干什么，多含贬义。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0049",
+      "word": "无中生有",
+      "pinyin": "wú zhōng shēng yǒu",
+      "meaning": "把没有的说成有，凭空捏造。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0050",
+      "word": "有备无患",
+      "pinyin": "yǒu bèi wú huàn",
+      "meaning": "事先有准备，就可以避免祸患。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0051",
+      "word": "患得患失",
+      "pinyin": "huàn dé huàn shī",
+      "meaning": "担心得不到，得到了又担心失去。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0052",
+      "word": "不耻下问",
+      "pinyin": "bù chǐ xià wèn",
+      "meaning": "不以向地位、学问较低的人请教为耻。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0053",
+      "word": "问心无愧",
+      "pinyin": "wèn xīn wú kuì",
+      "meaning": "自问内心没有惭愧。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0054",
+      "word": "当机立断",
+      "pinyin": "dāng jī lì duàn",
+      "meaning": "抓住时机，立刻决断。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0055",
+      "word": "断章取义",
+      "pinyin": "duàn zhāng qǔ yì",
+      "meaning": "孤立截取部分文句，曲解原意。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0056",
+      "word": "义无反顾",
+      "pinyin": "yì wú fǎn gù",
+      "meaning": "为正义勇往直前，绝不回头。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0057",
+      "word": "顾名思义",
+      "pinyin": "gù míng sī yì",
+      "meaning": "看到名称就能想到它的含义。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0058",
+      "word": "齐心协力",
+      "pinyin": "qí xīn xié lì",
+      "meaning": "思想一致，共同努力。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0059",
+      "word": "同心同德",
+      "pinyin": "tóng xīn tóng dé",
+      "meaning": "思想统一，信念一致。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0060",
+      "word": "众志成城",
+      "pinyin": "zhòng zhì chéng chéng",
+      "meaning": "万众一心，力量强大如城堡。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "处事"
+      ]
+    },
+    {
+      "id": "i0061",
+      "word": "专心致志",
+      "pinyin": "zhuān xīn zhì zhì",
+      "meaning": "一心一意，集中精神。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0062",
+      "word": "志同道合",
+      "pinyin": "zhì tóng dào hé",
+      "meaning": "志向相同，道路一致。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0063",
+      "word": "合情合理",
+      "pinyin": "hé qíng hé lǐ",
+      "meaning": "合乎情理。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0064",
+      "word": "理直气壮",
+      "pinyin": "lǐ zhí qì zhuàng",
+      "meaning": "理由充分，说话有气势。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0065",
+      "word": "学富五车",
+      "pinyin": "xué fù wǔ chē",
+      "meaning": "形容读书多，学问渊博。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0066",
+      "word": "车水马龙",
+      "pinyin": "chē shuǐ mǎ lóng",
+      "meaning": "车马往来不绝，形容繁华热闹。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0067",
+      "word": "龙马精神",
+      "pinyin": "lóng mǎ jīng shén",
+      "meaning": "形容人精神旺盛、昂扬奋发。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0068",
+      "word": "温故知新",
+      "pinyin": "wēn gù zhī xīn",
+      "meaning": "温习旧知识，得到新理解。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0069",
+      "word": "新陈代谢",
+      "pinyin": "xīn chén dài xiè",
+      "meaning": "新事物代替旧事物。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0070",
+      "word": "举一反三",
+      "pinyin": "jǔ yī fǎn sān",
+      "meaning": "由一件事类推而知道其他。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0071",
+      "word": "三顾茅庐",
+      "pinyin": "sān gù máo lú",
+      "meaning": "比喻诚心诚意地再三邀请。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0072",
+      "word": "孜孜不倦",
+      "pinyin": "zī zī bù juàn",
+      "meaning": "勤奋努力，不知疲倦。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0073",
+      "word": "勤学苦练",
+      "pinyin": "qín xué kǔ liàn",
+      "meaning": "勤奋学习，刻苦练习。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0074",
+      "word": "勤能补拙",
+      "pinyin": "qín néng bǔ zhuō",
+      "meaning": "勤奋可以弥补笨拙。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0075",
+      "word": "笨鸟先飞",
+      "pinyin": "bèn niǎo xiān fēi",
+      "meaning": "比喻能力差的人提前行动。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0076",
+      "word": "业精于勤",
+      "pinyin": "yè jīng yú qín",
+      "meaning": "学业的精深在于勤奋。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0077",
+      "word": "持之以恒",
+      "pinyin": "chí zhī yǐ héng",
+      "meaning": "长久坚持下去。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0078",
+      "word": "锲而不舍",
+      "pinyin": "qiè ér bù shě",
+      "meaning": "不断地雕刻，比喻坚持不懈。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0079",
+      "word": "水滴石穿",
+      "pinyin": "shuǐ dī shí chuān",
+      "meaning": "比喻只要坚持，事情就能成功。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0080",
+      "word": "精益求精",
+      "pinyin": "jīng yì qiú jīng",
+      "meaning": "已经很好还要求更好。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "求学"
+      ]
+    },
+    {
+      "id": "i0081",
+      "word": "心花怒放",
+      "pinyin": "xīn huā nù fàng",
+      "meaning": "形容内心极其高兴。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0082",
+      "word": "心旷神怡",
+      "pinyin": "xīn kuàng shén yí",
+      "meaning": "心情舒畅，精神愉快。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0083",
+      "word": "心平气和",
+      "pinyin": "xīn píng qì hé",
+      "meaning": "心情平静，态度温和。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0084",
+      "word": "和蔼可亲",
+      "pinyin": "hé ǎi kě qīn",
+      "meaning": "态度温和，容易接近。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0085",
+      "word": "亲密无间",
+      "pinyin": "qīn mì wú jiàn",
+      "meaning": "关系亲密，没有隔阂。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0086",
+      "word": "神采奕奕",
+      "pinyin": "shén cǎi yì yì",
+      "meaning": "形容精神饱满，容光焕发。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0087",
+      "word": "眉飞色舞",
+      "pinyin": "méi fēi sè wǔ",
+      "meaning": "形容得意或高兴的神态。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0088",
+      "word": "兴高采烈",
+      "pinyin": "xìng gāo cǎi liè",
+      "meaning": "兴致高，情绪热烈。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0089",
+      "word": "喜出望外",
+      "pinyin": "xǐ chū wàng wài",
+      "meaning": "遇到意外的喜事而特别高兴。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0090",
+      "word": "欢天喜地",
+      "pinyin": "huān tiān xǐ dì",
+      "meaning": "形容非常欢喜。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0091",
+      "word": "垂头丧气",
+      "pinyin": "chuí tóu sàng qì",
+      "meaning": "形容失望懊丧的样子。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0092",
+      "word": "心灰意冷",
+      "pinyin": "xīn huī yì lěng",
+      "meaning": "灰心失望，意志消沉。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0093",
+      "word": "忐忑不安",
+      "pinyin": "tǎn tè bù ān",
+      "meaning": "心神极为不安。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0094",
+      "word": "迫不及待",
+      "pinyin": "pò bù jí dài",
+      "meaning": "急得不能再等待。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0095",
+      "word": "若无其事",
+      "pinyin": "ruò wú qí shì",
+      "meaning": "好像没有那回事，形容镇定或漠视。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0096",
+      "word": "目瞪口呆",
+      "pinyin": "mù dèng kǒu dāi",
+      "meaning": "形容因吃惊或害怕而发愣。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0097",
+      "word": "大惊小怪",
+      "pinyin": "dà jīng xiǎo guài",
+      "meaning": "对平常的事过分惊讶。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0098",
+      "word": "惊天动地",
+      "pinyin": "jīng tiān dòng dì",
+      "meaning": "形容声势浩大或事业伟大。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0099",
+      "word": "泰然自若",
+      "pinyin": "tài rán zì ruò",
+      "meaning": "形容在紧急情况下沉着镇定。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0100",
+      "word": "从容不迫",
+      "pinyin": "cóng róng bù pò",
+      "meaning": "不慌不忙，沉着镇定。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "心情"
+      ]
+    },
+    {
+      "id": "i0101",
+      "word": "光明磊落",
+      "pinyin": "guāng míng lěi luò",
+      "meaning": "心地光明，坦白无私。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0102",
+      "word": "大公无私",
+      "pinyin": "dà gōng wú sī",
+      "meaning": "完全为公，没有私心。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0103",
+      "word": "舍己为人",
+      "pinyin": "shě jǐ wèi rén",
+      "meaning": "牺牲自己利益帮助别人。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0104",
+      "word": "见义勇为",
+      "pinyin": "jiàn yì yǒng wéi",
+      "meaning": "看到正义的事勇敢去做。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0105",
+      "word": "拾金不昧",
+      "pinyin": "shí jīn bù mèi",
+      "meaning": "捡到财物不据为己有。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0106",
+      "word": "一诺千金",
+      "pinyin": "yí nuò qiān jīn",
+      "meaning": "形容说话算数，极守信用。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0107",
+      "word": "言而有信",
+      "pinyin": "yán ér yǒu xìn",
+      "meaning": "说话守信用。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0108",
+      "word": "表里如一",
+      "pinyin": "biǎo lǐ rú yī",
+      "meaning": "外表和内心一致。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0109",
+      "word": "虚怀若谷",
+      "pinyin": "xū huái ruò gǔ",
+      "meaning": "胸怀谦虚得像山谷一样深广。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0110",
+      "word": "谦虚谨慎",
+      "pinyin": "qiān xū jǐn shèn",
+      "meaning": "虚心而不自满，慎重小心。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0111",
+      "word": "克己奉公",
+      "pinyin": "kè jǐ fèng gōng",
+      "meaning": "约束自己，一心为公。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0112",
+      "word": "助人为乐",
+      "pinyin": "zhù rén wéi lè",
+      "meaning": "把帮助别人当作快乐。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0113",
+      "word": "尊师重道",
+      "pinyin": "zūn shī zhòng dào",
+      "meaning": "尊敬师长，重视道义。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0114",
+      "word": "厚德载物",
+      "pinyin": "hòu dé zài wù",
+      "meaning": "以深厚的德行承载万物。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0115",
+      "word": "自强不息",
+      "pinyin": "zì qiáng bù xī",
+      "meaning": "自己努力向上，永不懈怠。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0116",
+      "word": "厚积薄发",
+      "pinyin": "hòu jī bó fā",
+      "meaning": "长期积累，适时施展。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "品行"
+      ]
+    },
+    {
+      "id": "i0117",
+      "word": "兵不厌诈",
+      "pinyin": "bīng bù yàn zhà",
+      "meaning": "用兵作战不排斥使用诡计。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "军事"
+      ]
+    },
+    {
+      "id": "i0118",
+      "word": "出其不意",
+      "pinyin": "chū qí bù yì",
+      "meaning": "趁对方没有料到时行动。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "军事"
+      ]
+    },
+    {
+      "id": "i0119",
+      "word": "攻其不备",
+      "pinyin": "gōng qí bù bèi",
+      "meaning": "趁对方没有防备时进攻。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "军事"
+      ]
+    },
+    {
+      "id": "i0120",
+      "word": "知己知彼",
+      "pinyin": "zhī jǐ zhī bǐ",
+      "meaning": "了解对方也了解自己。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "军事"
+      ]
+    },
+    {
+      "id": "i0121",
+      "word": "百战百胜",
+      "pinyin": "bǎi zhàn bǎi shèng",
+      "meaning": "每战必胜，形容极善作战。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "军事"
+      ]
+    },
+    {
+      "id": "i0122",
+      "word": "所向披靡",
+      "pinyin": "suǒ xiàng pī mǐ",
+      "meaning": "比喻力量所到之处，一切障碍皆被扫除。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "军事"
+      ]
+    },
+    {
+      "id": "i0123",
+      "word": "势如破竹",
+      "pinyin": "shì rú pò zhú",
+      "meaning": "形势像劈竹子一样顺利无阻。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "军事"
+      ]
+    },
+    {
+      "id": "i0124",
+      "word": "运筹帷幄",
+      "pinyin": "yùn chóu wéi wò",
+      "meaning": "在后方帐幕中谋划战略。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "军事"
+      ]
+    },
+    {
+      "id": "i0125",
+      "word": "决胜千里",
+      "pinyin": "jué shèng qiān lǐ",
+      "meaning": "在千里之外决定胜负。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "军事"
+      ]
+    },
+    {
+      "id": "i0126",
+      "word": "四面楚歌",
+      "pinyin": "sì miàn chǔ gē",
+      "meaning": "比喻陷入四面受敌、孤立无援的困境。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "军事"
+      ]
+    },
+    {
+      "id": "i0127",
+      "word": "刻舟求剑",
+      "pinyin": "kè zhōu qiú jiàn",
+      "meaning": "比喻办事刻板，不知变通。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0128",
+      "word": "守株待兔",
+      "pinyin": "shǒu zhū dài tù",
+      "meaning": "比喻妄想不劳而获或死守经验。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0129",
+      "word": "掩耳盗铃",
+      "pinyin": "yǎn ěr dào líng",
+      "meaning": "比喻自己欺骗自己。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0130",
+      "word": "画蛇添足",
+      "pinyin": "huà shé tiān zú",
+      "meaning": "比喻做多余的事反而把事情弄糟。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0131",
+      "word": "亡羊补牢",
+      "pinyin": "wáng yáng bǔ láo",
+      "meaning": "出了问题及时补救还不晚。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0132",
+      "word": "井底之蛙",
+      "pinyin": "jǐng dǐ zhī wā",
+      "meaning": "比喻见识狭小的人。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0133",
+      "word": "狐假虎威",
+      "pinyin": "hú jiǎ hǔ wēi",
+      "meaning": "比喻倚仗别人的势力欺压人。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0134",
+      "word": "叶公好龙",
+      "pinyin": "yè gōng hào lóng",
+      "meaning": "比喻口头上爱好，实际并不真爱。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0135",
+      "word": "杯弓蛇影",
+      "pinyin": "bēi gōng shé yǐng",
+      "meaning": "比喻疑神疑鬼，自相惊扰。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0136",
+      "word": "拔苗助长",
+      "pinyin": "bá miáo zhù zhǎng",
+      "meaning": "比喻违反规律强求速成，反而坏事。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0137",
+      "word": "滥竽充数",
+      "pinyin": "làn yú chōng shù",
+      "meaning": "比喻没有真才实学的人混在内行里凑数。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0138",
+      "word": "自相矛盾",
+      "pinyin": "zì xiāng máo dùn",
+      "meaning": "比喻言行前后抵触，不一致。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0139",
+      "word": "买椟还珠",
+      "pinyin": "mǎi dú huán zhū",
+      "meaning": "比喻取舍不当，舍本逐末。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0140",
+      "word": "邯郸学步",
+      "pinyin": "hán dān xué bù",
+      "meaning": "比喻模仿别人不成，反丢了自己的本领。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0141",
+      "word": "望梅止渴",
+      "pinyin": "wàng méi zhǐ kě",
+      "meaning": "比喻用空想安慰自己。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0142",
+      "word": "画龙点睛",
+      "pinyin": "huà lóng diǎn jīng",
+      "meaning": "比喻在关键处点明要旨，使内容生动。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0143",
+      "word": "朝三暮四",
+      "pinyin": "zhāo sān mù sì",
+      "meaning": "比喻反复无常或用手段欺骗。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0144",
+      "word": "班门弄斧",
+      "pinyin": "bān mén nòng fǔ",
+      "meaning": "比喻在行家面前卖弄本领。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "寓言"
+      ]
+    },
+    {
+      "id": "i0145",
+      "word": "大同小异",
+      "pinyin": "dà tóng xiǎo yì",
+      "meaning": "大体相同，略有差异。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0146",
+      "word": "小题大做",
+      "pinyin": "xiǎo tí dà zuò",
+      "meaning": "把小事情当作大事来处理。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0147",
+      "word": "天南地北",
+      "pinyin": "tiān nán dì běi",
+      "meaning": "形容相距遥远，也指漫无边际地闲谈。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0148",
+      "word": "谈天说地",
+      "pinyin": "tán tiān shuō dì",
+      "meaning": "漫无边际地闲谈。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0149",
+      "word": "天长地久",
+      "pinyin": "tiān cháng dì jiǔ",
+      "meaning": "形容时间悠久，永远不变。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0150",
+      "word": "人尽皆知",
+      "pinyin": "rén jǐn jiē zhī",
+      "meaning": "人人都知道。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0151",
+      "word": "知足常乐",
+      "pinyin": "zhī zú cháng lè",
+      "meaning": "知道满足就常常快乐。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0152",
+      "word": "乐在其中",
+      "pinyin": "lè zài qí zhōng",
+      "meaning": "快乐就在所做的事情里。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0153",
+      "word": "中流砥柱",
+      "pinyin": "zhōng liú dǐ zhù",
+      "meaning": "比喻在艰难环境中起支柱作用的集体或个人。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0154",
+      "word": "生龙活虎",
+      "pinyin": "shēng lóng huó hǔ",
+      "meaning": "形容活泼矫健，富有生气。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0155",
+      "word": "虎头蛇尾",
+      "pinyin": "hǔ tóu shé wěi",
+      "meaning": "比喻开始声势大，后来劲头小。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0156",
+      "word": "尾大不掉",
+      "pinyin": "wěi dà bù diào",
+      "meaning": "比喻机构庞大，指挥不灵。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0157",
+      "word": "日理万机",
+      "pinyin": "rì lǐ wàn jī",
+      "meaning": "形容政务繁忙，每天处理很多事情。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0158",
+      "word": "机不可失",
+      "pinyin": "jī bù kě shī",
+      "meaning": "机会难得，不可错过。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0159",
+      "word": "失而复得",
+      "pinyin": "shī ér fù de",
+      "meaning": "失去后又重新得到。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0160",
+      "word": "得过且过",
+      "pinyin": "dé guò qiě guò",
+      "meaning": "过一天算一天，敷衍度日。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0161",
+      "word": "过目不忘",
+      "pinyin": "guò mù bù wàng",
+      "meaning": "看一遍就能记住，形容记忆力强。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0162",
+      "word": "忘乎所以",
+      "pinyin": "wàng hū suǒ yǐ",
+      "meaning": "因过分兴奋或得意而忘了应有的举止。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0163",
+      "word": "以理服人",
+      "pinyin": "yǐ lǐ fú rén",
+      "meaning": "用道理说服别人。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0164",
+      "word": "人定胜天",
+      "pinyin": "rén dìng shèng tiān",
+      "meaning": "人的力量可以战胜自然。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0165",
+      "word": "天下无双",
+      "pinyin": "tiān xià wú shuāng",
+      "meaning": "世上没有第二个，形容出类拔萃。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0166",
+      "word": "双管齐下",
+      "pinyin": "shuāng guǎn qí xià",
+      "meaning": "比喻两件事同时进行或两种方法并用。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0167",
+      "word": "下笔成章",
+      "pinyin": "xià bǐ chéng zhāng",
+      "meaning": "形容文思敏捷，写文章很快。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0168",
+      "word": "章法有度",
+      "pinyin": "zhāng fǎ yǒu dù",
+      "meaning": "文章或做事有条理、有分寸。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0169",
+      "word": "度日如年",
+      "pinyin": "dù rì rú nián",
+      "meaning": "过一天像过一年那样长，形容日子难熬。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0170",
+      "word": "年富力强",
+      "pinyin": "nián fù lì qiáng",
+      "meaning": "年纪轻，精力旺盛。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0171",
+      "word": "强身健体",
+      "pinyin": "qiáng shēn jiàn tǐ",
+      "meaning": "使身体强壮健康。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0172",
+      "word": "体贴入微",
+      "pinyin": "tǐ tiē rù wēi",
+      "meaning": "细心关怀，照顾周到。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0173",
+      "word": "微不足道",
+      "pinyin": "wēi bù zú dào",
+      "meaning": "非常渺小，不值得一提。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0174",
+      "word": "道听途说",
+      "pinyin": "dào tīng tú shuō",
+      "meaning": "路上听来的话，指没有根据的传闻。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0175",
+      "word": "说一不二",
+      "pinyin": "shuō yī bù èr",
+      "meaning": "说话算数，决不更改。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0176",
+      "word": "二话不说",
+      "pinyin": "èr huà bù shuō",
+      "meaning": "不说别的话，形容行动果断。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0177",
+      "word": "说来话长",
+      "pinyin": "shuō lái huà cháng",
+      "meaning": "事情复杂，不是几句话能说完。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0178",
+      "word": "长年累月",
+      "pinyin": "cháng nián lěi yuè",
+      "meaning": "形容经历的时间很长。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0179",
+      "word": "月白风清",
+      "pinyin": "yuè bái fēng qīng",
+      "meaning": "月色皎洁，清风徐来，形容夜色美好。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0180",
+      "word": "清风明月",
+      "pinyin": "qīng fēng míng yuè",
+      "meaning": "清凉的风，明亮的月，指闲适的景致。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0181",
+      "word": "月下老人",
+      "pinyin": "yuè xià lǎo rén",
+      "meaning": "指媒人。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0182",
+      "word": "人面兽心",
+      "pinyin": "rén miàn shòu xīn",
+      "meaning": "外貌像人，心肠像野兽，形容人凶残卑劣。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0183",
+      "word": "心口如一",
+      "pinyin": "xīn kǒu rú yī",
+      "meaning": "心里想的和嘴上说的一致。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0184",
+      "word": "一往无前",
+      "pinyin": "yī wǎng wú qián",
+      "meaning": "一直往前，无所阻挡。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0185",
+      "word": "前所未有",
+      "pinyin": "qián suǒ wèi yǒu",
+      "meaning": "从来没有过的。",
+      "source": "",
+      "example": "",
+      "level": 1,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0186",
+      "word": "有目共睹",
+      "pinyin": "yǒu mù gòng dǔ",
+      "meaning": "人人都能看见，形容极其明显。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0187",
+      "word": "睹物思人",
+      "pinyin": "dǔ wù sī rén",
+      "meaning": "看见东西就想起它的主人。",
+      "source": "",
+      "example": "",
+      "level": 3,
+      "rare": true,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0188",
+      "word": "人才辈出",
+      "pinyin": "rén cái bèi chū",
+      "meaning": "有才能的人一批接一批地出现。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    },
+    {
+      "id": "i0189",
+      "word": "出口成章",
+      "pinyin": "chū kǒu chéng zhāng",
+      "meaning": "说出话来就是文章，形容口才好、文思快。",
+      "source": "",
+      "example": "",
+      "level": 2,
+      "rare": false,
+      "tags": [
+        "常用"
+      ]
+    }
+  ]
+}

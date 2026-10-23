@@ -66,3 +66,50 @@ CLAUDE.md
 /.claude
 /.codex
 /.opencode
+
+# >>> TapTap Maker AI dev kit (local only) >>>
+.DS_Store
+.agents/skills/custom-lobby/
+.agents/skills/materials/
+.agents/skills/nvg-resolution-mode/
+.agents/skills/online-system-notification/
+.agents/skills/run-lua-validate/
+.agents/skills/setup-achievements/
+.agents/skills/setup-ads/
+.agents/skills/setup-fsm/
+.agents/skills/skill-creator/
+.agents/skills/sprite-gen/
+.agents/skills/ui-astroon/
+.agents/skills/ui-brawlforge/
+.agents/skills/ui-pixelforge/
+.claude/
+.cli/
+.codex/
+.cursor/
+.emmylua/
+.gemini/
+.installer/
+.maker/
+AGENTS.md
+CLAUDE.md
+engine-docs/
+examples/
+schemas/
+skills/
+templates/
+tools/
+urhox-libs/
+# <<< TapTap Maker AI dev kit (local only) <<<
+# --- 项目自建（覆盖 ai-dev-kit 对上述目录的忽略） ---
+# 自建工具脚本必须入库
+!/tools/
+/tools/*
+!/tools/*.sh
+!/tools/*.py
+!/tools/*.mjs
+#!/tools/*.md
+
+# Agent 会话与记忆目录（本地状态，不入库）
+.workbuddy/
+.maker-mcp/
+#!/tools/*.md
