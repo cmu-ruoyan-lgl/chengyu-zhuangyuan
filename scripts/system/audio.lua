@@ -27,7 +27,7 @@ function M.init(opts)
     if not enabled_ then return false, "muted" end
     -- 引擎类的全局绑定类型因平台而异（table/userdata），只判存在性，
     -- 构造是否可用交给下方 pcall 兜底。
-    if _G.Scene == nil or type(_G.cache) ~= "table" then
+    if _G.Scene == nil or _G.cache == nil then
         return false, "no_engine"
     end
     local ok, err = pcall(function()
