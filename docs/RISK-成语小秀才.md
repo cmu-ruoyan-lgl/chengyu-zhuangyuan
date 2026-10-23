@@ -443,3 +443,10 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | 截图需真实窗口                                  | 二进制内 `-graphicssurfaceless ignored: this build lacks surfaceless EGL support`；`osascript` 调 System Events 挂死                                                            | ⚠️ 需你终端跑   |
 | 已装 skills                               | `.installer/skills/`：`ui-astroon`、`ui-brawlforge`、`ui-pixelforge`、`sprite-gen`、`setup-ads`、`setup-achievements`、`run-lua-validate`、`nvg-resolution-mode`、`materials` | —       |
 | MCP 未挂载                                 | 本会话内 ToolSearch 搜不到任何 maker 工具                                                                                                                                       | ⚠️ 需重启客户端 |
+
+### 1.9 S1 试玩通道补充（2026-10-23 22:58）
+
+| 编号 | 问题 | 根因 | 解法 | 状态 |
+|---|---|---|---|---|
+| S1-9 | Web 预览在用户 Chrome 也报「This browser lacks required runtime support」 | 登录后由 wasm_player_lite 播放器做能力检测（WASM/WebGL2 等），具体失败项未知；与用户浏览器版本或 GPU 加速被禁用有关 | 需用户查 chrome://version 与 chrome://gpu；同时提供手机扫码试玩通道兜底 | ⚠️ 未根治（待用户环境信息） |
+| S1-10 | 生成测试二维码被拒：title/category 为空、category 填中文「益智」不合法 | taptap_publish.title/category 必填；category 是英文枚举（rpg/casual/…/word/board） | project.json 填 title=成语小秀才、category=word；顺带修正 screen_orientation landscape→portrait（设计为竖屏） | ✅ 已根治，二维码已生成 |
