@@ -58,6 +58,14 @@ local function shadow(blur, y, alpha, colorKey)
                color = withAlpha(col, alpha or 90) } }
 end
 
+--- 棋子/字块基础质感：落影 + 顶部内高光
+local function pieceShadow()
+    return {
+        { x = 0, y = 3, blur = 8, spread = 0, color = { 60, 40, 20, 60 } },
+        { x = 0, y = 2, blur = 0, spread = 0, color = { 255, 255, 255, 60 }, inset = true },
+    }
+end
+
 --- 跑一个关键帧动画（失败静默降级为静态呈现）
 local function anim(widget, config)
     if not widget or not widget.Animate then return false end
@@ -150,7 +158,7 @@ end
 --- 顶栏信息胶囊（漆底 + 描金边）
 local function chip(label, opts)
     opts = opts or {}
-    local fontSize = opts.fontSize or Theme.font("topbar", 26)
+    local fontSize = opts.fontSize or Theme.font("topbar", 26) * 0.85
     local dot = nil
     if opts.dotColor then
         dot = UI.Panel {
@@ -203,7 +211,10 @@ local function pillButton(text, onTap, opts)
         },
         textColor = opts.fg or c("ink"),
         fontWeight = "bold",
-        boxShadow = shadow(14, 5, 110, opts.glow or "gold_dark"),
+        boxShadow = {
+            { x = 0, y = 6, blur = 16, spread = 0, color = withAlpha(c(opts.glow or "gold_dark"), 130) },
+            { x = 0, y = 2, blur = 0, spread = 0, color = { 255, 248, 230, 90 }, inset = true },
+        },
         borderWidth = 2,
         borderColor = c("gold_dark"),
         onClick = onTap,
@@ -293,7 +304,16 @@ local function buildBoard(session)
     local grid = session.grid
     local rows, cols = grid:size()
     local gap = Theme.num("cell_gap", 8)
-    local fontSize = Theme.font("hanzi", 40)
+
+    -- 格子边长：同时受卡片可用宽/高约束（窄屏时按宽收缩，保证棋盘不溢出、左右对称）
+    local vw = UI.GetWidth() or Config.num("ui.design_width", 1080)
+    local vh = UI.GetHeight() or Config.num("ui.design_height", 1920)
+    local cardW = vw - 48 - 32                    -- 卡片外边距 24*2 + 内边距 16*2
+    local cardH = vh * Theme.ratio("board", 0.446) - 28
+    local cellSize = math.floor(math.min(
+        (cardW - gap * (cols - 1)) / cols,
+        (cardH - gap * (rows - 1)) / rows))
+    local fontSize = math.min(Theme.font("hanzi", 40), cellSize * 0.52)
 
     local rowPanels = {}
     for r = 0, rows - 1 do
@@ -314,14 +334,14 @@ local function buildBoard(session)
                 flexShrink = 1,
             }
             local panel = UI.Panel {
-                height = "100%",
-                aspectRatio = 1,
-                flexShrink = 1,
+                width = cellSize,
+                height = cellSize,
                 margin = gap / 2,
                 backgroundColor = bg,
                 borderWidth = 2,
                 borderColor = border,
                 borderRadius = radius,
+                boxShadow = pieceShadow(),
                 justifyContent = "center",
                 alignItems = "center",
                 onClick = function() Play.onCellTapped(r, cIdx) end,
@@ -331,9 +351,6 @@ local function buildBoard(session)
             cellPanels[#cellPanels + 1] = panel
         end
         rowPanels[#rowPanels + 1] = UI.Panel {
-            width = "100%",
-            flexGrow = 1,
-            flexShrink = 1,
             flexDirection = "row",
             justifyContent = "center",
             alignItems = "center",
@@ -347,6 +364,8 @@ local function buildBoard(session)
         flexShrink = 1,
         marginHorizontal = 24,
         flexDirection = "column",
+        justifyContent = "center",
+        alignItems = "center",
         paddingHorizontal = 16,
         paddingVertical = 14,
         backgroundColor = c("panel"),
@@ -401,7 +420,7 @@ local function buildBank(session)
             borderWidth = 2,
             borderColor = c("panel_edge"),
             borderRadius = Theme.num("cell_radius", 14),
-            boxShadow = shadow(12, 5, 100),
+            boxShadow = pieceShadow(),
             justifyContent = "center",
             alignItems = "center",
             onClick = function() Play.onBankTapped(idx) end,
@@ -736,7 +755,7 @@ function Play.refresh()
                     ref.panel:SetStyle({
                         backgroundColor = bg,
                         borderColor = border,
-                        boxShadow = isSel and shadow(18, 4, 150, "gold") or false,
+                        boxShadow = isSel and shadow(18, 4, 150, "gold") or pieceShadow(),
                     })
                 end
             end
@@ -751,7 +770,7 @@ function Play.refresh()
                         or (item.used and c("bank_block_used") or c("bank_block")),
                     borderColor = isSel and c("gold_dark") or c("panel_edge"),
                     opacity = item.used and 0.4 or 1.0,
-                    boxShadow = isSel and shadow(18, 5, 150, "gold") or shadow(12, 5, 100),
+                    boxShadow = isSel and shadow(18, 5, 150, "gold") or pieceShadow(),
                 })
             end
         end
@@ -966,11 +985,9 @@ function Play.mount(_, opts)
         width = "100%",
         height = "100%",
         flexDirection = "column",
-        backgroundGradient = {
-            direction = "to-bottom",
-            from = c("bg_top"),
-            to = c("bg_bottom"),
-        },
+        backgroundColor = c("bg_top"),
+        backgroundImage = "Textures/bg_main.png",
+        backgroundFit = "cover",
         children = {
             buildTopBar(s),
             buildProgressBar(),
