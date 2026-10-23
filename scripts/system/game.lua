@@ -43,15 +43,16 @@ local state = {
 -- 初始化
 ------------------------------------------------------------------------------
 
---- 读 levels/manifest.json 的关卡总数（增量开发：当前 150 关）
+--- 读 levels/manifest.json 的关卡总数（T24 后为 300 关）
+-- manifest 缺失时的兜底值也必须是 300：否则进度系统会把 151+ 关判为越界。
 local function loadMaxLevel()
     local text = fs.readText(fs.data("levels/manifest.json"))
-    if not text then return 150 end
+    if not text then return 300 end
     local ok, data = pcall(json.decode, text)
     if ok and type(data) == "table" and tonumber(data.count) then
         return tonumber(data.count)
     end
-    return 150
+    return 300
 end
 
 --- opts: { save = 注入存档（测试用), persist = false 关闭落盘（测试用） }

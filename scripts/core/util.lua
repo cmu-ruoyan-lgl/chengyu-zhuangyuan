@@ -32,9 +32,26 @@ end
 -- 可复现随机（LCG，避免污染全局 math.random，保证 --seed 可复现）
 ------------------------------------------------------------------------------
 
+--- seed 混洗（FNV-1a 变体，32 位内运算，不会丢精度）。
+-- 为什么必须混洗（RISK S4-2）：MINSTD 的**首个输出**≈ frac(seed*16807/2^31)，
+-- 相邻 seed 只差 1 时首个输出只差 0.0008% —— 关卡生成器用
+-- `seed*7919 + levelId*1000 + attempt` 派生 seed，attempt 递增 1 的 120 次重试
+-- 实际上"首抽"几乎完全一致（成语数恒为 4、失败关卡 120 次重试全部失败）。
+local function mixSeed(seed)
+    seed = math.floor(tonumber(seed) or 1)
+    local h = 2166136261
+    local guard = 0
+    while seed > 0 and guard < 8 do
+        h = (h * 65599 + (seed % 65536)) % 4294967296
+        seed = math.floor(seed / 65536)
+        guard = guard + 1
+    end
+    return h % 2147483647
+end
+
 --- 返回一个 rand 函数：rand() -> [0,1)；rand(n) -> [1,n] 整数
 function M.rng(seed)
-    local state = (tonumber(seed) or 1) % 2147483647
+    local state = mixSeed(seed)
     if state <= 0 then state = state + 2147483646 end
     return function(n)
         state = (state * 16807) % 2147483647

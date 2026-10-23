@@ -35,7 +35,7 @@ lua-tools/
 schemas/
 skills/
 templates/
-tools/
+/tools/
 urhox-libs/
 AGENTS.md
 CLAUDE.md
@@ -97,10 +97,15 @@ examples/
 schemas/
 skills/
 templates/
-tools/
+/tools/
 urhox-libs/
 # <<< TapTap Maker AI dev kit (local only) <<<
 # --- 项目自建（覆盖 ai-dev-kit 对上述目录的忽略） ---
+# ai-dev-kit 的 `tools/` 规则本意只忽略**根目录** tools/（远端 pre-receive 钩子禁止跟踪），
+# 但无前导斜杠的 `tools/` 会命中任意层级的同名目录，把 scripts/tools/（离线关卡生成器、
+# 关卡校验器、核心单测）一起排除在版本库之外 —— DEV §0.0.1 明确要求它们入库。
+# 已把该规则收紧为 `/tools/`；若 ai-dev-kit 重新生成本段，请再次收紧。
+
 # 注意：tools/ 是平台资源入口（远端 pre-receive 钩子禁止跟踪），
 # 本地工具脚本（verify.sh 等）保留在磁盘但不入库。
 # Agent 会话与记忆目录（本地状态，不入库）
