@@ -217,6 +217,7 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | S1-5 | `save.json` schema 新增 `current` 字段（中断续玩快照） | DEV §3.4 schema 未定义，S1 验收「杀进程不丢」需要 | schema_version 保持 1（该 schema 尚未对外发布），字段语义：{level_id, grid, bank, hints_used, wrong_count}；通关/跳过置 nil | ✅ 已根治，补进 DEV §3.4 待文档同步 |
 | S1-6 | validate 跑完项目根多出 `save.json`/`save.json.bak`，且会跨轮污染（体力越扣越少，第 11 轮起触发体力门） | tool_mode 下引擎 `File` 写落在项目根而非用户沙箱 | ①`.gitignore` 忽略 `/save.json*`；②`verify.sh` validate 前清理运行时存档；真机/预览沙箱路径正确，不受影响 | ✅ 已根治（含防回归：每次 validate 前清理） |
 | S1-7 | 远端构建连续 3 次 push 断连（`send-pack unexpected disconnect`），第 4 次变成 remote rejected：「tools 是平台资源入口，不能新增跟踪、替换或删除」 | ①网络/HTTP 缓冲：已加 `http.postBuffer=512MB` + `http.version=HTTP/1.1` 后断连消失；②M1 把自建脚本提交进 `tools/`，撞平台钩子 | `git rm -r --cached tools`（磁盘保留），.gitignore 恢复忽略；`taptap-maker git sync` 确认无冲突后重建成功（commit `9ce26ad` 起推通） | ✅ 已根治。⚠️ 教训：平台保留目录（tools/ 等）不要提交自建文件 |
+| S1-8 | Web 预览链接在 WorkBuddy 内置预览面板打开报「Load failed: This browser lacks required runtime support」 | Maker Web 播放器需要 WebAssembly/WebGL2 等能力，内置 WebView 不满足；服务端未收到任何会话（runtime logs pulled: 0），纯客户端能力门槛 | 用系统浏览器（Chrome/Edge/Safari）打开：`open "https://maker.taptap.cn/app/8c6c5aec-0fbd-4606-b442-56ed62def573?localDev=1"`；present_files 只交付链接，不指望内置面板渲染 | ✅ 已根治（操作方式规避） |
 
 **S1 冒烟（离线自动）**：新号满体力 50 → 连续通关 10 关（体力 50→0、金币 450、连对 10、连对倍率 ×2 自第 3 关起生效）→ 第 11 关被体力门拦截 → 广告 mock +10 体力后进关成功。**PASS**。
 
