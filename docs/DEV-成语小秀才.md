@@ -280,9 +280,19 @@ demo-game/
   "book": { "unlocked": ["i0001"], "wrong": ["i0888"] },
   "achievements": { "xuefu_wuche": { "progress": 5, "done": false } },
   "settings": { "big_text": false, "sound": true, "music": true },
-  "stats": { "total_levels": 87, "total_wrong": 41 }
+  "stats": { "total_levels": 87, "total_wrong": 41 },
+  "current": {
+    "level_id": 87,
+    "grid": { "levelData": "…关卡快照…", "values": [{ "r": 1, "c": 2, "char": "马" }] },
+    "bank": [{ "char": "马", "used": true }],
+    "hints_used": 1,
+    "wrong_count": 2
+  }
 }
 ```
+
+> `current`（S1 新增）：中断续玩快照。每次填字/撤销/提示后刷新，通关或跳过置 `null`；
+> 启动时若存在则以 `Session.resume` 恢复且**不重复扣体力**。字段随 schema v1 一起首发（未对外发布过旧版）。
 
 **迁移约定**：`schema_version` 递增时必须在 `scripts/system/save.lua` 中追加 `migrate_vN_to_vN1()`，禁止就地改结构而丢旧档。
 
