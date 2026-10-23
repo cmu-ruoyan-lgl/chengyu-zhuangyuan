@@ -31,29 +31,65 @@
       {
         "from": 1,
         "to": 50,
-        "grid": [4, 4],
-        "idiom_count": [2, 3],
-        "cross": [1, 2],
+        "grid": [
+          4,
+          4
+        ],
+        "idiom_count": [
+          2,
+          3
+        ],
+        "cross": [
+          1,
+          2
+        ],
         "rare_ratio": 0.08,
-        "distractors": [0, 2]
+        "distractors": [
+          0,
+          2
+        ]
       },
       {
         "from": 51,
         "to": 150,
-        "grid": [6, 6],
-        "idiom_count": [3, 4],
-        "cross": [2, 4],
+        "grid": [
+          6,
+          6
+        ],
+        "idiom_count": [
+          3,
+          4
+        ],
+        "cross": [
+          2,
+          4
+        ],
         "rare_ratio": 0.18,
-        "distractors": [2, 4]
+        "distractors": [
+          2,
+          4
+        ]
       },
       {
         "from": 151,
         "to": 300,
-        "grid": [7, 7],
-        "idiom_count": [4, 6],
-        "cross": [4, 8],
+        "grid": [
+          7,
+          7
+        ],
+        "idiom_count": [
+          4,
+          6
+        ],
+        "cross": [
+          4,
+          8
+        ],
         "rare_ratio": 0.25,
-        "distractors": [4, 6]
+        "distractors": [
+          4,
+          6
+        ]
       }
     ],
     "presets": {
@@ -62,11 +98,23 @@
       "max_ratio": 0.4
     },
     "challenge": {
-      "grid": [8, 8],
-      "idiom_count": [5, 7],
-      "cross": [5, 8],
+      "grid": [
+        8,
+        8
+      ],
+      "idiom_count": [
+        5,
+        7
+      ],
+      "cross": [
+        5,
+        8
+      ],
       "rare_ratio": 0.4,
-      "distractors": [6, 8]
+      "distractors": [
+        6,
+        8
+      ]
     }
   },
   "economy_guard": {
@@ -86,36 +134,255 @@
       "hanzi": 40,
       "topbar": 26,
       "toolbar": 28,
-      "caption": 24
+      "caption": 24,
+      "title": 56,
+      "emblem": 64,
+      "symbol": 30
     },
     "big_text_scale": 1.2,
     "cell_gap": 8,
     "cell_radius": 12,
     "bank_block_min": 88,
     "layout_ratio": {
-      "topbar": 0.08,
-      "board": 0.46,
-      "bank": 0.26,
-      "toolbar": 0.14,
+      "topbar": 0.088,
+      "progress": 0.014,
+      "board": 0.446,
+      "bank": 0.25,
+      "toolbar": 0.142,
       "banner": 0.06
     },
     "color": {
-      "bg": [244, 238, 224, 255],
-      "board_bg": [255, 252, 244, 255],
-      "cell_empty": [255, 255, 255, 255],
-      "cell_empty_border": [206, 190, 160, 255],
-      "cell_fixed": [238, 226, 200, 255],
-      "cell_filled": [255, 250, 235, 255],
-      "cell_selected": [255, 214, 130, 255],
-      "cell_done": [140, 200, 150, 255],
-      "cell_error": [230, 120, 110, 255],
-      "text_main": [58, 48, 38, 255],
-      "text_dim": [130, 116, 96, 255],
-      "bank_block": [255, 246, 226, 255],
-      "bank_block_used": [222, 214, 200, 255],
-      "bank_block_selected": [255, 196, 96, 255],
-      "tool_button": [222, 200, 158, 255],
-      "accent": [196, 132, 66, 255]
+      "bg": [
+        244,
+        238,
+        224,
+        255
+      ],
+      "board_bg": [
+        255,
+        252,
+        244,
+        255
+      ],
+      "cell_empty": [
+        255,
+        255,
+        255,
+        255
+      ],
+      "cell_empty_border": [
+        206,
+        190,
+        160,
+        255
+      ],
+      "cell_fixed": [
+        238,
+        226,
+        200,
+        255
+      ],
+      "cell_filled": [
+        255,
+        250,
+        235,
+        255
+      ],
+      "cell_selected": [
+        255,
+        214,
+        130,
+        255
+      ],
+      "cell_done": [
+        140,
+        200,
+        150,
+        255
+      ],
+      "cell_error": [
+        230,
+        120,
+        110,
+        255
+      ],
+      "text_main": [
+        58,
+        48,
+        38,
+        255
+      ],
+      "text_dim": [
+        130,
+        116,
+        96,
+        255
+      ],
+      "bank_block": [
+        255,
+        246,
+        226,
+        255
+      ],
+      "bank_block_used": [
+        222,
+        214,
+        200,
+        255
+      ],
+      "bank_block_selected": [
+        255,
+        196,
+        96,
+        255
+      ],
+      "tool_button": [
+        222,
+        200,
+        158,
+        255
+      ],
+      "accent": [
+        196,
+        132,
+        66,
+        255
+      ],
+      "bg_top": [
+        45,
+        28,
+        20,
+        255
+      ],
+      "bg_bottom": [
+        92,
+        56,
+        34,
+        255
+      ],
+      "panel": [
+        250,
+        242,
+        226,
+        255
+      ],
+      "panel_edge": [
+        214,
+        190,
+        152,
+        255
+      ],
+      "ink": [
+        62,
+        44,
+        30,
+        255
+      ],
+      "ink_dim": [
+        146,
+        122,
+        96,
+        255
+      ],
+      "text_light": [
+        246,
+        236,
+        220,
+        255
+      ],
+      "text_light_dim": [
+        198,
+        174,
+        146,
+        255
+      ],
+      "gold": [
+        242,
+        190,
+        96,
+        255
+      ],
+      "gold_deep": [
+        206,
+        146,
+        48,
+        255
+      ],
+      "gold_dark": [
+        150,
+        102,
+        32,
+        255
+      ],
+      "jade": [
+        124,
+        196,
+        148,
+        255
+      ],
+      "jade_deep": [
+        72,
+        150,
+        104,
+        255
+      ],
+      "seal": [
+        196,
+        74,
+        58,
+        255
+      ],
+      "seal_deep": [
+        150,
+        52,
+        40,
+        255
+      ],
+      "chip_bg": [
+        58,
+        40,
+        28,
+        255
+      ],
+      "chip_edge": [
+        120,
+        88,
+        56,
+        255
+      ],
+      "star": [
+        255,
+        216,
+        120,
+        255
+      ],
+      "coin": [
+        255,
+        198,
+        72,
+        255
+      ],
+      "overlay": [
+        24,
+        14,
+        9,
+        225
+      ]
+    },
+    "fx": {
+      "star_count": 14,
+      "star_radius": 230,
+      "star_duration": 0.75,
+      "star_size": 18,
+      "star_glow": 16,
+      "coin_count": 16,
+      "coin_duration": 1.1,
+      "coin_size": 26,
+      "ring_duration": 0.6,
+      "clear_pop_duration": 0.5,
+      "spark_count": 10,
+      "spark_radius": 130,
+      "spark_duration": 0.6
     }
   }
 }
