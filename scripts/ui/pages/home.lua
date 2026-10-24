@@ -26,50 +26,71 @@ local c = W.c
 local shadow = W.shadow
 
 ------------------------------------------------------------------------------
--- 书童骨骼动画（S9-rig）
--- 骨架层级：root(呼吸浮动) → 躯干骨(绕腰微转) → {头骨(点头) / 书骨(含书页) / 近臂骨(翻页)}，
---           另有静止的凳子与远臂。每根骨 = 与画框同尺寸的透明 Panel，
---           transformOrigin = 关节在画框中的比例坐标 → 旋转即绕关节转，子节点继承变换。
--- 部件与关节坐标由 tools/fit_doll_rig.py 以合成图剪影为真值拟合（覆盖 88.8%），
--- 全部写进 config.json 的 ui.scholar，禁止硬编码。
--- 循环动画一律 loop + direction="alternate"：onComplete 链式会被 BaseUpdate
--- 完成分支的 self.animation_ = nil 杀掉（实测只走两拍，见 RISK 9.0）。
+-- 书童骨骼动画（S11：程序化骨架）
+-- 部件由 scripts/tools/draw_doll.py 按解剖学绘制：每个部件都是整幅 512 画布、
+-- 且已处于最终位置的透明贴图 → 引擎侧全画幅叠放，装配误差为 0。
+-- （S10 版本由 AI 合成图拟合而来，比例/关节不可控、动作诡异，已废弃。）
+-- 骨架层级（变换沿渲染树继承，父骨动会带动子部件）：
+--   box
+--   ├ chair / arm_far / legs                静态（凳子、远侧手臂在身后、腿）
+--   └ liftBone（呼吸起伏 translateY）
+--       └ rootBone（绕髋微转 = 吸气，头/书/手臂作为子节点跟随）
+--           ├ torso
+--           ├ book → pageBone(绕书脊) → page
+--           ├ arm_upper → foreBone(绕肘) → arm_fore
+--           └ headBone(绕颈 点头) → head / eyes_open / eyes_shut
+--   └ kudos「知识++」
+-- 循环一律 loop + alternate（onComplete 链会被 BaseUpdate 完成分支的
+-- self.animation_ = nil 杀掉，见 RISK 9.0）。同一 widget 只有一个动画槽，
+-- 所以「起伏」与「旋转」必须分挂两层骨。
 ------------------------------------------------------------------------------
 
-local scholarRefs_ = nil      -- { gen, page, armBone, kudos }
-local scholarHooked_ = false  -- ticker 只挂一次
-local scholarGen_ = 0         -- 每次挂载 +1，旧代际的 tick 到代即停
-local scholarFlipIn_ = 0      -- 距下次翻页的秒数
+local scholarRefs_ = nil       -- { gen, page, foreBone, kudos, eyesOpen, eyesShut }
+local scholarHooked_ = false   -- ticker 只挂一次
+local scholarGen_ = 0          -- 每次挂载 +1，旧代际的 tick 到代即停
+local scholarFlipIn_ = 0       -- 距下次翻页的秒数
+local scholarBlinkIn_ = 3      -- 距下次眨眼的秒数
+local scholarBlinkLeft_ = 0    -- 闭眼剩余时长
 
 local pct = W.pct
 
---- 一根骨：与画框同尺寸、绕关节旋转的透明容器（子节点继承其变换）
--- 必须绝对定位：否则多根 100% 高度的骨会在列容器里纵向叠加（实测 320→960 溢出）
-local function bone(jointName, children)
-    local j = Config.get("ui.scholar.joints." .. jointName, nil)
+local function cfgNum(key, default)
+    return Config.num("ui.scholar." .. key, default)
+end
+
+--- 关节坐标（比例 0..1）：config 优先，缺失时用传入兜底
+local function jointOf(name, fx, fy)
+    local j = Config.get("ui.scholar.joints." .. name, nil)
+    if type(j) == "table" and tonumber(j[1]) then
+        return { tonumber(j[1]), tonumber(j[2]) }
+    end
+    return { fx, fy }
+end
+
+--- 一根骨：与画框同尺寸的透明容器，绕关节旋转，子节点继承其变换。
+-- 必须绝对定位：否则多层 100% 高度的骨会在列容器里纵向叠加（实测 320→960 溢出）
+local function bone(jointName, fx, fy, children)
     return UI.Panel {
         position = "absolute",
         left = 0, top = 0,
-        width = "100%",
-        height = "100%",
-        transformOrigin = { (j and j[1]) or 0.5, (j and j[2]) or 0.5 },
+        width = "100%", height = "100%",
+        transformOrigin = jointOf(jointName, fx, fy),
         pointerEvents = "none",
         children = children,
     }
 end
 
---- 部件贴图：位置/尺寸全部来自 config（相对画框的比例）
-local function partPanel(name, img)
-    local p = Config.get("ui.scholar.parts." .. name, nil)
-    local tex = img or (p and p.img) or nil
-    if not tex then return nil end
-    local x, y, w, h = 0, 0, 1, 1
-    if p then x, y, w, h = p.x or 0, p.y or 0, p.w or 1, p.h or 1 end
+--- 部件贴图：整幅画布、已就位，故恒为 0,0,100%,100%
+local function part(name)
+    local img = Config.get("ui.scholar.parts." .. name, nil)
+    if type(img) ~= "string" then
+        img = "Textures/doll/scholar_" .. name .. ".png"
+    end
     return UI.Panel {
         position = "absolute",
-        left = pct(x), top = pct(y),
-        width = pct(w), height = pct(h),
-        backgroundImage = tex,
+        left = 0, top = 0,
+        width = "100%", height = "100%",
+        backgroundImage = img,
         backgroundFit = "contain",
         pointerEvents = "none",
     }
@@ -86,72 +107,13 @@ local function loopAnim(widget, prop, to, period, easing)
     })
 end
 
-local function scholarTick(dt)
-    local r = scholarRefs_
-    if not r or r.gen ~= scholarGen_ then return end
-    scholarFlipIn_ = scholarFlipIn_ - (tonumber(dt) or 0)
-    if scholarFlipIn_ > 0 then return end
-    scholarFlipIn_ = Config.num("ui.scholar.flip_interval", 5)
-
-    local swing = Config.num("ui.scholar.arm_swing", 7)
-    -- ① 书页绕书脊由右向左翻（transformOrigin="left" 已在面板上设好）
-    W.anim(r.page, {
-        keyframes = {
-            [0]    = { opacity = 0, rotate = 0 },
-            [0.18] = { opacity = 1, rotate = -12 },
-            [0.72] = { opacity = 1, rotate = -150 },
-            [1]    = { opacity = 0, rotate = -172 },
-        },
-        duration = 0.75,
-        easing = "easeInOut",
-    })
-    -- ② 近侧手臂：先伸向书页再收回（骨骼绕肩关节旋转）
-    W.anim(r.armBone, {
-        keyframes = {
-            [0]    = { rotate = 0 },
-            [0.35] = { rotate = -swing },
-            [0.8]  = { rotate = swing * 0.3 },
-            [1]    = { rotate = 0 },
-        },
-        duration = 0.9,
-        easing = "easeInOut",
-    })
-    -- ③ 知识++：头顶右上冒出、上飘淡出
-    W.anim(r.kudos, {
-        keyframes = {
-            [0]    = { opacity = 0, translateY = 10, scale = 0.6 },
-            [0.25] = { opacity = 1, translateY = 0, scale = 1.15 },
-            [0.75] = { opacity = 1, translateY = -30, scale = 1 },
-            [1]    = { opacity = 0, translateY = -52, scale = 1 },
-        },
-        duration = 1.1,
-        easing = "easeOut",
-    })
-end
-
---- 书页：画在书的右半页上，绕书脊旋转（opacity=0 起始，禁用 visible=false）
-local function buildPage()
-    local pg = Config.get("ui.scholar.page", nil) or {}
-    return UI.Panel {
-        position = "absolute",
-        left = pct(pg.x or 0.647), top = pct(pg.y or 0.565),
-        width = pct(pg.w or 0.156), height = pct(pg.h or 0.215),
-        borderRadius = 6,
-        backgroundColor = { 255, 253, 245, 240 },
-        borderWidth = 2,
-        borderColor = { 214, 190, 152, 210 },
-        transformOrigin = "left",
-        opacity = 0,
-        pointerEvents = "none",
-    }
-end
-
---- 知识++ 飘字：头顶右上角
+--- 知识++ 飘字：头顶右上角（opacity=0 起始，禁用 visible=false）
 local function buildKudos()
     local kd = Config.get("ui.scholar.kudos", nil) or {}
     return UI.Panel {
         position = "absolute",
-        left = pct(kd.x or 0.60), top = pct(kd.y or 0.03),
+        left = pct(tonumber(kd.x) or 0.58),
+        top = pct(tonumber(kd.y) or 0.06),
         opacity = 0,
         pointerEvents = "none",
         children = { UI.Label {
@@ -165,47 +127,137 @@ local function buildKudos()
     }
 end
 
+local function scholarTick(dt)
+    local r = scholarRefs_
+    if not r or r.gen ~= scholarGen_ then return end
+    dt = tonumber(dt) or 0
+
+    -- 眨眼：睁/闭两套眼睛贴图互斥切换（离散状态，不走关键帧）
+    if r.eyesOpen and r.eyesShut then
+        if scholarBlinkLeft_ > 0 then
+            scholarBlinkLeft_ = scholarBlinkLeft_ - dt
+            if scholarBlinkLeft_ <= 0 then
+                r.eyesOpen.opacity = 1
+                r.eyesShut.opacity = 0
+                local lo = cfgNum("blink_min", 2.2)
+                local hi = cfgNum("blink_max", 4.5)
+                scholarBlinkIn_ = lo + math.random() * math.max(0, hi - lo)
+            end
+        else
+            scholarBlinkIn_ = scholarBlinkIn_ - dt
+            if scholarBlinkIn_ <= 0 then
+                r.eyesOpen.opacity = 0
+                r.eyesShut.opacity = 1
+                scholarBlinkLeft_ = cfgNum("blink_hold", 0.12)
+            end
+        end
+    end
+
+    if not (r.page and r.foreBone and r.kudos) then return end
+
+    -- 翻页：抬手 → 书页绕书脊翻过去 → 手落回 → 知识++（翻过一半时冒出）
+    scholarFlipIn_ = scholarFlipIn_ - dt
+    if scholarFlipIn_ > 0 then return end
+    scholarFlipIn_ = cfgNum("flip_interval", 5)
+
+    local lift = cfgNum("arm_lift", -32)
+    local flip = cfgNum("flip_degrees", -168)
+    -- ① 前臂绕肘抬起，等书页翻过去再落回（保持段略微回弹，避免僵直）
+    W.anim(r.foreBone, {
+        keyframes = {
+            [0]    = { rotate = 0 },
+            [0.22] = { rotate = lift },
+            [0.78] = { rotate = lift * 0.92 },
+            [1]    = { rotate = 0 },
+        },
+        duration = 1.15,
+        easing = "easeInOut",
+    })
+    -- ② 书页绕书脊由右翻向左（opacity=0 起始/收尾，避免翻完残留一页）
+    W.anim(r.page, {
+        keyframes = {
+            [0]    = { opacity = 0, rotate = 0 },
+            [0.20] = { opacity = 1, rotate = -12 },
+            [0.80] = { opacity = 1, rotate = flip + 18 },
+            [1]    = { opacity = 0, rotate = flip },
+        },
+        duration = 1.0,
+        easing = "easeInOut",
+    })
+    -- ③ 知识++：前段静止等待，书页翻过一半后冒出、上飘淡出
+    W.anim(r.kudos, {
+        keyframes = {
+            [0]    = { opacity = 0, translateY = 8, scale = 0.7 },
+            [0.38] = { opacity = 0, translateY = 8, scale = 0.7 },
+            [0.56] = { opacity = 1, translateY = 0, scale = 1.12 },
+            [0.84] = { opacity = 1, translateY = -24, scale = 1 },
+            [1]    = { opacity = 0, translateY = -42, scale = 1 },
+        },
+        duration = 1.35,
+        easing = "easeOut",
+    })
+end
+
 --- 骨骼装配（默认）
 local function buildScholarRig()
-    local size = Config.num("ui.scholar.size", 320)
+    local size = cfgNum("size", 320)
     scholarGen_ = scholarGen_ + 1
-    scholarFlipIn_ = Config.num("ui.scholar.flip_interval", 5)
+    scholarFlipIn_ = cfgNum("flip_interval", 5)
+    scholarBlinkLeft_ = 0
+    scholarBlinkIn_ = cfgNum("blink_min", 2.2)
 
-    local page = buildPage()
+    -- 头：两套眼睛互斥（闭眼初始隐藏）
+    local eyesOpen = part("eyes_open")
+    local eyesShut = part("eyes_shut")
+    eyesShut.opacity = 0
+    local headBone = bone("neck", 0.4648, 0.3711, { part("head"), eyesOpen, eyesShut })
+
+    -- 书：书页是全画幅贴图，故骨绕「书脊」的比例坐标旋转
+    local page = part("page")
+    page.opacity = 0
+    local pageBone = bone("spine", 0.4844, 0.543, { page })
+
+    -- 近侧手臂：前臂绕肘抬起翻页
+    local foreBone = bone("elbow", 0.6289, 0.5312, { part("arm_fore") })
+
     local kudos = buildKudos()
 
-    local headBone = bone("head", { partPanel("head") })
-    local armNearBone = bone("arm_near", { partPanel("arm_near") })
-    local bookBone = bone("book", { partPanel("book"), page })
-    local torsoBone = bone("torso", { partPanel("torso"), headBone, bookBone, armNearBone })
-
-    -- 会呼吸浮动的部分（凳子不跟着飘）
-    local rig = UI.Panel {
-        width = "100%",
-        height = "100%",
+    -- 上半身：呼吸时整体绕髋微转，头/书/手臂作为子节点一起跟随
+    local rootBone = bone("hip", 0.4531, 0.6484, {
+        part("torso"),
+        part("book"), pageBone,
+        part("arm_upper"), foreBone,
+        headBone,
+    })
+    -- 呼吸起伏单独一层：同一 widget 只有一个动画槽，rotate 已占用 rootBone
+    local liftBone = UI.Panel {
+        position = "absolute",
+        left = 0, top = 0,
+        width = "100%", height = "100%",
         pointerEvents = "none",
-        children = { partPanel("arm_far"), torsoBone, kudos },
+        children = { rootBone },
     }
+
     local box = UI.Panel {
-        width = size,
-        height = size,
+        width = size, height = size,
         position = "relative",
         pointerEvents = "none",
-        children = { partPanel("chair"), rig },
+        children = { part("chair"), part("arm_far"), part("legs"), liftBone, kudos },
     }
 
-    scholarRefs_ = { gen = scholarGen_, page = page, armBone = armNearBone, kudos = kudos }
+    scholarRefs_ = { gen = scholarGen_, page = page, foreBone = foreBone,
+                     kudos = kudos, eyesOpen = eyesOpen, eyesShut = eyesShut }
     if not scholarHooked_ then
         scholarHooked_ = true
         Ticker.add(scholarTick)
     end
 
-    local period = Config.num("ui.scholar.bob_period", 3.2)
-    loopAnim(rig, "translateY", -Config.num("ui.scholar.bob_amplitude", 6), period)
-    loopAnim(torsoBone, "rotate", Config.num("ui.scholar.breathe_degrees", 1.2), period)
-    loopAnim(headBone, "rotate", Config.num("ui.scholar.nod_degrees", 2.6),
-        Config.num("ui.scholar.nod_period", 2.6))
-    -- 外层给个满宽容器把定宽画框居中（父级是列容器，定宽子项不会自动居中）
+    local bp = cfgNum("breathe_period", 3.4)
+    loopAnim(liftBone, "translateY", -cfgNum("breathe_lift", 4), bp)
+    loopAnim(rootBone, "rotate", cfgNum("breathe_degrees", 1.1), bp)
+    loopAnim(headBone, "rotate", cfgNum("nod_degrees", 2.4), cfgNum("nod_period", 2.8))
+
+    -- 外层满宽容器把定宽画框居中（父级是列容器，定宽子项不会自动居中）
     return UI.Panel {
         width = "100%",
         height = size + 20,
@@ -216,29 +268,28 @@ local function buildScholarRig()
     }
 end
 
---- 整图兜底（config: ui.scholar.mode = "image"）：单张贴图 + 书页 + 飘字
+--- 整图兜底（config: ui.scholar.mode = "image"）：单张贴图 + 呼吸 + 知识++
 local function buildScholarImage()
-    local size = Config.num("ui.scholar.size", 320)
+    local size = cfgNum("size", 320)
     scholarGen_ = scholarGen_ + 1
-    scholarFlipIn_ = Config.num("ui.scholar.flip_interval", 5)
+    scholarFlipIn_ = cfgNum("flip_interval", 5)
+    scholarBlinkLeft_ = 0
 
-    local page = buildPage()
     local kudos = buildKudos()
     local body = UI.Panel {
-        width = size,
-        height = size,
+        width = size, height = size,
+        position = "relative",
         backgroundImage = "Textures/scholar.png",
         backgroundFit = "contain",
         pointerEvents = "none",
-        children = { page, kudos },
+        children = { kudos },
     }
-    scholarRefs_ = { gen = scholarGen_, page = page, armBone = nil, kudos = kudos }
+    scholarRefs_ = { gen = scholarGen_, page = nil, foreBone = nil, kudos = kudos }
     if not scholarHooked_ then
         scholarHooked_ = true
         Ticker.add(scholarTick)
     end
-    loopAnim(body, "translateY", -Config.num("ui.scholar.bob_amplitude", 6),
-        Config.num("ui.scholar.bob_period", 3.2))
+    loopAnim(body, "translateY", -cfgNum("breathe_lift", 4), cfgNum("breathe_period", 3.4))
     return body
 end
 
