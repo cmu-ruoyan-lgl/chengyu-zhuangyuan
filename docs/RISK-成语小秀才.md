@@ -614,3 +614,11 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | S15-4 | 字体子集需随 Lua 注释新增字符重建 | 字集采集扫「Lua + config 全部非 ASCII」，S13/S14 新注释含子集外汉字 | `build_verification_font.py --chars 12000` 重跑 + 覆盖 MiSans 两份；单字重 2.87→2.14MB（顺带减包） | ✅ |
 | S15-5 | `generate_resource_meta` 对 `scripts/tools/make_icons.py` 返回 skipped（不生成 .meta），对同目录 `scholar_spritesheet.py` 却正常 | 疑似生成器对部分路径的规则差异，原因未明 | 不阻塞（两次远端构建均成功打包）；若后续构建报缺 meta 再处理 | ⚠️ 观察中 |
 | S15-6 | 文档分散、素材无清单 | 多阶段累积 | 新建 `docs/美术素材清单.md`、`scripts/tools/README.md`（素材流水线）；重写 `docs/README.md`（索引 + 当前状态）；交付说明补 S13/S14 与待办 | ✅ |
+
+### 16.0 游戏改名与宣传素材（2026-10-25）
+
+| 编号 | 问题 | 根因 | 解法 | 状态 |
+|---|---|---|---|---|
+| S16-1 | 游戏改名「成语小秀才」→「成语小状元」 | 用户指令 | 游戏内 5 处全替换（login/home/play 标题与兜底、glyphwarm CHROME_CHARS、.project/project.json title）；512 图标重出（旧图标渲染了旧名）；字体子集重建（状元二字本就在 rank 表内，7310 字数不变）；文档仅更新现状类（README/交付说明/上架文案），RISK/DEV/PRD 历史记录保留旧名不改写 | ✅（巡检/主入口 PASS） |
+| S16-2 | 上架三件套文案（简介/≤25字推荐语/开发者的话） | 用户指令 | `docs/上架文案.md`：简介 143 字；推荐语 18 字「边玩边学成语填字，从童生到状元」；开发者的话无联系方式/外链/兑换码且与简介不重合 | ✅ 待用户过目 |
+| S16-3 | 宣传 5 图 + 图标 10 候选；`generate_image` 仍 INSUFFICIENT_BALANCE（未执行未扣费） | 生成积分未充值 | 零积分 PIL 方案：`scripts/tools/make_promo.py` 产出 `docs/宣传素材/`（icon_cand_01–10 + promo_01–05 + 两张对照图）；所有渲染文本先过字体 cmap 校验防豆腐块；promo_02 首版第三条成语超宽被裁，改为两词大十字布局 | ✅ 首版（AI 版待充值同名替换） |

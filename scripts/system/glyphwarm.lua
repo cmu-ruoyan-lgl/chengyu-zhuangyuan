@@ -18,7 +18,7 @@ local FONT_PATH = "Fonts/MiSans-Regular.ttf"
 
 -- UI 常用文案字（顶栏/工具栏/弹门/横幅等）。level 字由 warmupLevel 另算。
 -- 注意：新增 UI 文案后需同步此处；字体子集构建脚本会自动收集 Lua 里的中文字。
-local CHROME_CHARS = "第关体力金币提示撤销洗牌下一关成语小秀才稍后再来不足看广告得跳过成功失败继续本已通关剩余次数"
+local CHROME_CHARS = "第关体力金币提示撤销洗牌下一关成语小状元稍后再来不足看广告得跳过成功失败继续本已通关剩余次数"
 local CHROME_SIZES = { 24, 26, 28 }   -- caption / topbar / toolbar
 
 --- 在指定上下文上光栅化一批字（单字号、单字体）。

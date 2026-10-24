@@ -81,7 +81,7 @@ local function buildAgeGate()
         paddingHorizontal = 30,
         children = {
             UI.Label {
-                text = "成语小秀才",
+                text = "成语小状元",
                 fontSize = Theme.font("title", 56) * 1.3,
                 fontColor = c("jade_deep"),
                 fontWeight = "bold",

@@ -136,7 +136,7 @@ end
 local function buildTopBar(session)
     local isChallenge = (Game.mode() == "challenge")
     refs.levelChip = chip(isChallenge and "每日挑战"
-        or (session and ("第 " .. tostring(session.levelId) .. " 关") or "成语小秀才"), {
+        or (session and ("第 " .. tostring(session.levelId) .. " 关") or "成语小状元"), {
         bg = c("gold_deep"), border = c("gold_dark"), fg = c("ink"), bold = true,
         glow = "gold",
     })
