@@ -158,7 +158,7 @@ function M.reasonText(reason)
     elseif reason == "minor_out_of_window" then
         local days, hours = Config.get("compliance.minor_allowed_weekdays", {}),
                             Config.get("compliance.minor_allowed_hours", {})
-        return string.format("未成年人仅可在周五、周六、周日及法定节假日 %d:00–%d:00 进入游戏",
+        return string.format("未成年人仅可在周五、周六、周日及法定节假日 %d:00 至 %d:00 进入游戏",
             tonumber(hours[1]) or 20, (tonumber(hours[#hours]) or 21) + 1)
     elseif reason == "minor_overtime" then
         return string.format("今日游戏时长已达 %d 分钟上限，请明日再来",

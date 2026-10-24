@@ -504,3 +504,14 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | S5-5 | 配色键 `cream` **从未在 config 定义**，多处按钮文字默默渲染成黑色（`Config.color` 兜底默认色） | 新增色键时漏配；无校验 | 补齐 `cream`/`cream_dim`；`府邸/交卷/下一关` 等按钮文字恢复为设计的米白色 | ✅ |
 | S5-6 | **激励广告 mock 永远播不完**、奖励发不出 | `admodal` 用 `os.clock()` 做倒计时——该平台 os.clock 不推进（RISK S3-4 同类问题，当时只修了防沉迷计时，漏了广告） | 改为 Ticker 帧间隔 dt 累加（`st.left - dt`） | ✅ |
 | S5-7 | 主页在小高度视口溢出（headless 巡检窗口 1322×546 触发 2 条 Layout Warning） | 主页内容总高 ~925px，根容器 space-between 顶死 | 主体改放 `ScrollView`（flexGrow=1, flexBasis=0），底栏固定；大按钮 Label 加 flexShrink | ✅（巡检 0 告警） |
+
+### 6.0 登录/阻断页修复（2026-10-24 上午，用户截图反馈）
+
+| 编号 | 问题 | 根因 | 解法 | 状态 |
+|---|---|---|---|---|
+| S6-1 | 登录页两行按钮**副标题溢出到按钮外**、与下一按钮重合 | `UI.Button` 内部为单行 `text` 设计了 auto-fit/测量管线，传两行 children 时高度与排布被搞乱（显式 height 也救不回来） | 多行复合按钮一律改用 `UI.Panel + onClick`（login 的 bigButton、home 的闯关大按钮都换了）；单行 text 按钮继续用 Button | ✅ |
+| S6-2 | 登录页按钮**不居中**（靠左） | 列容器里定宽（88%）子项默认走 flex-start | 容器显式 `alignItems="center"` | ✅ |
+| S6-3 | 底部健康忠告**被横向裁断**（缺头少尾） | `Label` 不自动换行，一行长文案直接超出屏幕 | `wrapLines()` 按字符数手动断行（每行 14–16 字），登录页脚与阻断页共用 | ✅ |
+| S6-4 | 阻断页「20:00**□**22:00」豆腐块 | 文案用了 en dash `–`（U+2013），字体子集只收了 em dash `—`（U+2014）；Lua 文案扫描只取 CJK，标点漏采 | 文案改「至」；字体子集 EXTRA_CHARS 补 `–`、`％`、`℃`、`×` 并重建双字重 | ✅（覆盖率门禁已验证 U+2013 在子集内） |
+| S6-5 | 阻断页**「返回」键点了没反应** | 该按钮只是重挂同一阻断页，视觉零变化，观感等同死按钮 | 改为「重新选择年龄段」：`Game.resetRealname()` 清除占位实名后回到年龄门（注释标明：接入真实实名 SDK 后必须删除此入口） | ✅ |
+| S6-6 | 阻断页/登录页在小高度视口 footer 被压缩告警 | footer 带 flexShrink=1 被压到 53px（内容 84px） | footer 改 flexShrink=0 保持自然高度，body 侧 flexShrink=1 吸收收缩 | ✅（巡检 0 告警） |

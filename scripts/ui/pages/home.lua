@@ -93,15 +93,15 @@ function Home.mount()
         },
     }
 
-    -- 中部：闯关大按钮（两行文案，显式高度避免 Layout Warning）
+    -- 中部：闯关大按钮（Panel 实现——Button 的单行 auto-fit 管线会让两行 children 溢出）
     local playLabel = inProgress and "继续闯关" or "开始闯关"
     local playSub = inProgress
         and string.format("回到第 %d 关（进度已保留）", levelId)
         or (levelId > 1 and string.format("第 %d 关 / 共 %d 关", levelId, maxLevel)
             or string.format("共 %d 关等你挑战", maxLevel))
-    local playBtn = UI.Button {
+    local playBtn = UI.Panel {
         width = "80%",
-        height = 136,
+        paddingVertical = 26,
         borderRadius = 40,
         backgroundGradient = { direction = "to-bottom", from = c("jade"), to = c("jade_deep") },
         borderWidth = 3,

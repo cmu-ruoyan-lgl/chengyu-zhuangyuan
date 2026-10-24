@@ -646,6 +646,15 @@ function M.setRealname(age)
     return bracket
 end
 
+--- 清除实名（**仅占位认证期使用**，让玩家可回到年龄选择重选；
+--- 接入真实实名 SDK 后必须删除此入口——实名信息不允许玩家自行清除）
+function M.resetRealname()
+    state.save.realname_status = nil
+    state.save.age = nil
+    state.save.age_bracket = nil
+    M.persist()
+end
+
 --- 累计在线时长（UI 逐帧调用）
 function M.tickPlayTime(dt)
     return Compliance.tick(state.save, dt, Time.now())

@@ -3,6 +3,11 @@
 -- ⚠️ 边界：本页是**占位认证**（自报年龄段），不构成法律意义上的实名认证。
 --   正式上线必须接入实名 SDK（姓名+身份证号 → 公安核验），并在回调里调用
 --   Game.setRealname(真实年龄)。交付文档中列为待用户接入项。
+-- 布局纪律（S6 踩坑）：
+--   ① 多行复合按钮一律用 UI.Panel + onClick——UI.Button 内部为单行 text
+--      做了 auto-fit 管线，children 两行时副标题会溢出按钮外（实测截图重合）；
+--   ② 列容器里的定宽子项要显式 alignItems="center"，否则靠左；
+--   ③ Label 不自动换行，长文案必须手动断行（见 wrapLines）。
 
 local UI = require("urhox-libs/UI")
 local Theme = require("ui.theme")
@@ -16,7 +21,27 @@ local function c(key, default)
     return W.c(key, default)
 end
 
---- 主按钮（描金大按钮，触控区足够大）
+--- 长文案手动断行：按字符数切成每行 ≤ perLine 字（Label 不会自动换行）
+local function wrapLines(text, perLine)
+    local lines, cur, n = {}, "", 0
+    for ch in tostring(text):gmatch("[%z\1-\127\194-\244][\128-\191]*") do
+        if ch == "\n" then
+            lines[#lines + 1] = cur
+            cur, n = "", 0
+        else
+            cur = cur .. ch
+            n = n + 1
+            if n >= perLine then
+                lines[#lines + 1] = cur
+                cur, n = "", 0
+            end
+        end
+    end
+    if cur ~= "" then lines[#lines + 1] = cur end
+    return table.concat(lines, "\n")
+end
+
+--- 多行大按钮（Panel 实现，两行文案不溢出；触控区 = 整张卡）
 local function bigButton(text, sub, onTap, opts)
     opts = opts or {}
     local kids = {
@@ -27,6 +52,7 @@ local function bigButton(text, sub, onTap, opts)
             fontWeight = "bold",
             textAlign = "center",
             width = "100%",
+            flexShrink = 1,
         },
     }
     if sub then
@@ -37,15 +63,15 @@ local function bigButton(text, sub, onTap, opts)
             textAlign = "center",
             width = "100%",
             marginTop = 6,
+            flexShrink = 1,
         }
     end
-    -- Button 默认 height=44（胶囊），两行文案必须显式给高度，否则触发 Layout Warning
-    return UI.Button {
+    return UI.Panel {
         width = "88%",
-        height = opts.height or (sub and 104 or 78),
         marginVertical = 10,
         paddingVertical = 20,
         borderRadius = 30,
+        backgroundColor = opts.bg,
         backgroundGradient = opts.gradient or {
             direction = "to-bottom", from = c("gold"), to = c("gold_deep"),
         },
@@ -54,6 +80,7 @@ local function bigButton(text, sub, onTap, opts)
         boxShadow = W.shadow(16, 6, 130, opts.glow or "gold_dark"),
         flexDirection = "column",
         alignItems = "center",
+        justifyContent = "center",
         onClick = onTap,
         children = kids,
     }
@@ -65,6 +92,7 @@ local function buildAgeGate()
     return UI.Panel {
         width = "100%",
         flexGrow = 1,
+        flexShrink = 1,
         flexDirection = "column",
         alignItems = "center",
         justifyContent = "center",
@@ -80,13 +108,15 @@ local function buildAgeGate()
             UI.Label {
                 text = info.agePrompt,
                 fontSize = Theme.font("caption", 24),
-                fontColor = c("text_light_dim"),
+                fontColor = c("ink_dim"),
                 textAlign = "center",
                 marginTop = 12,
             },
             UI.Panel {
                 width = "100%",
                 marginTop = 40,
+                flexDirection = "column",
+                alignItems = "center",
                 children = {
                     bigButton("我已成年（18 岁及以上）", "可正常游玩与付费", function()
                         Game.setRealname(Config.num("compliance.default_adult_age", 25))
@@ -115,12 +145,12 @@ local function buildAgeGate()
                 },
             },
             UI.Label {
-                text = "按国家规定，未完成实名认证无法进入游戏。\n"
-                    .. "本版为占位认证，正式上线需接入实名 SDK。",
+                text = "按国家规定，未完成实名认证无法进入游戏。\n本版为占位认证，正式上线需接入实名 SDK。",
                 fontSize = Theme.font("caption", 24),
-                fontColor = c("text_light_dim"),
+                fontColor = c("ink_dim"),
                 textAlign = "center",
                 marginTop = 30,
+                flexShrink = 1,
             },
         },
     }
@@ -131,6 +161,7 @@ local function buildBlocked(info)
     return UI.Panel {
         width = "100%",
         flexGrow = 1,
+        flexShrink = 1,
         flexDirection = "column",
         alignItems = "center",
         justifyContent = "center",
@@ -149,21 +180,29 @@ local function buildBlocked(info)
                 fontColor = c("seal_deep"),
                 textAlign = "center",
                 marginTop = 20,
+                flexShrink = 1,
             },
             UI.Label {
-                text = info.notice,
+                text = wrapLines(info.notice, 14),
                 fontSize = Theme.font("caption", 24),
-                fontColor = c("text_light_dim"),
+                fontColor = c("ink_dim"),
                 textAlign = "center",
                 marginTop = 30,
+                flexShrink = 1,
             },
-            bigButton("返回", nil, function() Login.mount() end, {
+            UI.Panel { height = 26 },
+            -- 占位认证期允许重选年龄段（接入真实实名 SDK 后删除该入口）
+            bigButton("重新选择年龄段", "返回实名认证页", function()
+                Game.resetRealname()
+                Login.mount()
+            end, {
                 gradient = {
-                    direction = "to-bottom", from = c("panel"), to = c("panel_edge"),
+                    direction = "to-bottom", from = c("jade"), to = c("jade_deep"),
                 },
-                fg = c("ink"),
-                border = c("panel_edge"),
-                glow = nil,
+                fg = c("cream"),
+                subColor = c("cream_dim"),
+                border = c("jade_deep"),
+                glow = "jade_deep",
             }),
         },
     }
@@ -197,19 +236,20 @@ function Login.mount()
     -- 隐私政策（PRD §5.1）：URL 未配置时不渲染，避免展示占位/假链接
     local footer = {
         UI.Label {
-            text = info.notice,
+            text = wrapLines(info.notice, 16),
             fontSize = Theme.font("caption", 24),
-            fontColor = c("text_light_dim"),
+            fontColor = c("ink_dim"),
             textAlign = "center",
             width = "100%",
             paddingBottom = 40,
+            flexShrink = 1,
         },
     }
     if type(info.privacyUrl) == "string" and info.privacyUrl ~= "" then
         footer[#footer + 1] = UI.Label {
             text = "隐私政策：" .. info.privacyUrl,
             fontSize = Theme.font("caption", 24) * 0.9,
-            fontColor = c("text_light_dim"),
+            fontColor = c("ink_dim"),
             textAlign = "center",
             width = "100%",
             paddingBottom = 24,
@@ -231,7 +271,7 @@ function Login.mount()
                 width = "100%",
                 flexDirection = "column",
                 alignItems = "center",
-                flexShrink = 1,
+                flexShrink = 0,
                 children = footer,
             },
         },
