@@ -477,7 +477,7 @@ function Play.openCourt()
     if okC and type(Court) == "table" and Court.mount then
         Court.mount()
     else
-        showBanner("府邸页加载失败", "seal")
+        alertModal("加载失败", "府邸页加载失败，请稍后再试")
     end
 end
 
@@ -517,6 +517,16 @@ local function buildBanner()
         } },
     }
     return refs.bannerBox
+end
+
+--- 结果类提示统一弹窗（S8）；高频棋局反馈仍走 banner 吐司
+local function alertModal(title, message)
+    local ok, Modal = pcall(require, "ui.modal")
+    if ok and Modal and Modal.alert then
+        Modal.alert({ title = title, message = message })
+    else
+        print("[play] " .. tostring(title) .. ": " .. tostring(message))
+    end
 end
 
 local function showBanner(text, colorKey)
@@ -880,7 +890,7 @@ function Play.onHint()
     if hint then
         showBanner("已提示一个字", "gold_dark")
     elseif err == "hint_limit" then
-        showBanner("本关提示已用完", "seal")
+        alertModal("提示已用完", "本关的提示次数已用完，可以试用洗牌或撤销")
     end
     Play.refresh()
 end
@@ -922,7 +932,7 @@ function Play.onGateAd()
     end
     AD.show("stamina", {
         onGranted = function()
-            showBanner("广告奖励已到账", "jade_deep")
+            alertModal("奖励已到账", "广告奖励已发放到你的账户")
             if Game.stamina() >= Game.staminaCost() then
                 if refs.gate then refs.gate:SetVisible(false) end
                 Play.onNextLevel()
@@ -931,7 +941,7 @@ function Play.onGateAd()
             end
         end,
         onDenied = function(reason)
-            showBanner(reason == "cooldown" and "广告冷却中，稍后再试" or "暂时无法观看广告", "seal")
+            alertModal("广告暂不可用", reason == "cooldown" and "广告冷却中，稍后再试" or "暂时无法观看广告，请稍后再试")
         end,
     })
 end
@@ -1174,6 +1184,12 @@ function Play.mount(_, opts)
             buildBank(s),
             buildToolBar(s),
             buildBanner(),
+            -- 底部广告预留区（S8）：占位留空，后续接 Banner 广告直接挂这里
+            UI.Panel {
+                width = "100%",
+                height = pct(Theme.ratio("ad_reserve", 0.09)),
+                flexShrink = 1,
+            },
             clearPanel,
             gatePanel,
             buildComplianceGate(),

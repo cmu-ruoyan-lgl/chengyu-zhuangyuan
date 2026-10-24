@@ -11,7 +11,16 @@ local W = require("ui.widgets")
 
 local Court = {}
 
-local lastMsg_ = ""
+--- 结果类提示统一弹窗（S8）
+local function alert(title, message, onClose)
+    local ok, Modal = pcall(require, "ui.modal")
+    if ok and Modal and Modal.alert then
+        Modal.alert({ title = title, message = message, onClose = onClose })
+    else
+        print("[court] " .. tostring(title) .. ": " .. tostring(message))
+        if onClose then onClose() end
+    end
+end
 
 local function c(key, default)
     return W.c(key, default)
@@ -90,15 +99,12 @@ local function line2(text)
     }
 end
 
---- 操作后重挂并回显
+--- 操作后弹窗回显，关闭弹窗时重挂刷新数据（数据即视图）
 local function act(msg, fn)
     local ok, result = pcall(fn)
-    if not ok then
-        lastMsg_ = "操作失败：" .. tostring(result)
-    else
-        lastMsg_ = msg
-    end
-    Court.mount()
+    local title = ok and "操作成功" or "操作失败"
+    local text = ok and tostring(msg or "") or tostring(result)
+    alert(title, text, function() Court.mount() end)
 end
 
 ------------------------------------------------------------------------------
@@ -265,8 +271,7 @@ local function challengeSection()
                     local ok, Nav = pcall(require, "ui.nav")
                     if ok and Nav then Nav.reset("play", { session = s }) end
                 else
-                    lastMsg_ = "挑战不可用：" .. tostring(err)
-                    Court.mount()
+                    alert("挑战不可用", tostring(err))
                 end
             end,
             { disabled = (info.remaining or 0) <= 0, gradient = {
@@ -316,15 +321,6 @@ function Court.mount()
         if ok and Nav and Nav.back then Nav.back() end
     end
 
-    local status = UI.Label {
-        text = lastMsg_ or "",
-        fontSize = fs("caption", 24),
-        fontColor = c("jade_deep"),
-        textAlign = "center",
-        width = "100%",
-        flexShrink = 1,
-    }
-
     local body = UI.ScrollView {
         width = "100%",
         flexGrow = 1,
@@ -334,7 +330,6 @@ function Court.mount()
         paddingHorizontal = 24,
         paddingVertical = 10,
         children = {
-            status,
             rankSection(),
             manorSection(),
             followerSection(),

@@ -11,12 +11,14 @@ local Nav = require("ui.nav")
 
 local Home = {}
 
-local notice_ = ""
-
---- 顶部状态条回显（操作失败不能静默——S7 挑战入口教训）
-function Home.notice(msg)
-    notice_ = tostring(msg or "")
-    Home.mount()
+--- 结果类提示统一走弹窗（S8）；弹窗组件懒加载避免循环依赖
+local function alert(title, message)
+    local ok, Modal = pcall(require, "ui.modal")
+    if ok and Modal and Modal.alert then
+        Modal.alert({ title = title, message = message })
+    else
+        print("[home] " .. tostring(title) .. ": " .. tostring(message))
+    end
 end
 
 local c = W.c
@@ -145,18 +147,7 @@ function Home.mount()
         flexDirection = "column",
         alignItems = "center",
         paddingTop = 64,
-        children = {
-            playBtn,
-            UI.Label {
-                text = notice_,
-                fontSize = Theme.font("caption", 24),
-                fontColor = c("seal_deep"),
-                textAlign = "center",
-                width = "100%",
-                marginTop = 16,
-                flexShrink = 1,
-            },
-        },
+        children = { playBtn },
     }
 
     -- 四宫格：府邸 / 挑战 / 图鉴 / 商店
@@ -178,7 +169,7 @@ function Home.mount()
                             ch.target or 0, ch.remaining or 0),
                         function()
                             if (ch.remaining or 0) <= 0 then
-                                Home.notice("今日挑战次数已用完，明天再来")
+                                alert("挑战次数已用完", "今日挑战次数已用完，明天再来吧")
                                 return
                             end
                             local s, err = Game.startChallenge()
@@ -186,7 +177,7 @@ function Home.mount()
                                 Nav.reset("play", { session = s })
                             else
                                 print("[home] 挑战开启失败: " .. tostring(err))
-                                Home.notice("挑战开启失败：" .. tostring(err))
+                                alert("挑战开启失败", "请稍后再试（" .. tostring(err) .. "）")
                             end
                         end,
                         { titleColor = c("seal_deep") }),

@@ -169,12 +169,13 @@
     "bank_block_min": 88,
     "clear_card_area_height": 300,
     "layout_ratio": {
-      "topbar": 0.088,
+      "topbar": 0.08,
       "progress": 0.014,
-      "board": 0.446,
-      "bank": 0.25,
-      "toolbar": 0.142,
-      "banner": 0.06
+      "board": 0.44,
+      "bank": 0.215,
+      "toolbar": 0.115,
+      "banner": 0.06,
+      "ad_reserve": 0.076
     },
     "color": {
       "bg": [

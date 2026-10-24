@@ -11,7 +11,15 @@ local W = require("ui.widgets")
 
 local Shop = {}
 
-local msg_ = ""
+--- 结果类提示统一弹窗（S8）
+local function alert(title, message)
+    local ok, Modal = pcall(require, "ui.modal")
+    if ok and Modal and Modal.alert then
+        Modal.alert({ title = title, message = message })
+    else
+        print("[shop] " .. tostring(title) .. ": " .. tostring(message))
+    end
+end
 
 local function c(key, default)
     return W.c(key, default)
@@ -83,7 +91,7 @@ local function row(title, sub, btnText, onTap, opts)
 end
 
 local function act(msg)
-    msg_ = msg
+    alert("商店", tostring(msg or ""))
     Shop.mount()
 end
 
@@ -157,14 +165,6 @@ local function adSection()
 end
 
 function Shop.mount()
-    local status = UI.Label {
-        text = msg_ or "",
-        fontSize = fs("caption", 24),
-        fontColor = c("jade_deep"),
-        textAlign = "center",
-        width = "100%",
-        flexShrink = 1,
-    }
     local body = UI.ScrollView {
         width = "100%",
         flexGrow = 1,
@@ -174,7 +174,6 @@ function Shop.mount()
         paddingHorizontal = 24,
         paddingVertical = 10,
         children = {
-            status,
             iapSection(),
             adSection(),
             W.sectionCard("说明", {

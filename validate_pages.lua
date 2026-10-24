@@ -86,6 +86,16 @@ function Start()
             stage = 9
             -- 收尾：回主页，验证 Nav 栈外的直挂也正常
             mount("主页（二次）", "ui.pages.home")
+        elseif stage == 9 and frame >= 59 then
+            stage = 10
+            -- 统一弹窗（S8）：验证挂载无布局告警
+            local okM, Modal = pcall(require, "ui.modal")
+            if okM and Modal and Modal.alert then
+                Modal.alert({ title = "挑战次数已用完", message = "今日挑战次数已用完，明天再来吧" })
+                print(string.format("[validate_pages] frame %d 弹窗挂载 ✅", frame))
+            else
+                print(string.format("[validate_pages] frame %d 弹窗挂载 ❌", frame))
+            end
         end
     end)
 end
