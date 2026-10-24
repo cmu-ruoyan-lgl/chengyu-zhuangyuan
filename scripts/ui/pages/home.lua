@@ -118,6 +118,21 @@ local function buildKudos()
     }
 end
 
+--- 知识++ 飘字动效（整图/序列帧共用；关键帧参数已冒烟验证，勿改）
+local function playKudos(kudos)
+    W.anim(kudos, {
+        keyframes = {
+            [0]    = { opacity = 0, translateY = 8, scale = 0.7 },
+            [0.38] = { opacity = 0, translateY = 8, scale = 0.7 },
+            [0.56] = { opacity = 1, translateY = 0, scale = 1.12 },
+            [0.84] = { opacity = 1, translateY = -24, scale = 1 },
+            [1]    = { opacity = 0, translateY = -42, scale = 1 },
+        },
+        duration = 1.35,
+        easing = "easeOut",
+    })
+end
+
 local function scholarTick(dt)
     local r = scholarRefs_
     if not r or r.gen ~= scholarGen_ then return end
@@ -196,17 +211,7 @@ local function scholarTick(dt)
         end
     end
     -- ③ 知识++：前段静止等待，书页翻过一半后冒出、上飘淡出
-    W.anim(r.kudos, {
-        keyframes = {
-            [0]    = { opacity = 0, translateY = 8, scale = 0.7 },
-            [0.38] = { opacity = 0, translateY = 8, scale = 0.7 },
-            [0.56] = { opacity = 1, translateY = 0, scale = 1.12 },
-            [0.84] = { opacity = 1, translateY = -24, scale = 1 },
-            [1]    = { opacity = 0, translateY = -42, scale = 1 },
-        },
-        duration = 1.35,
-        easing = "easeOut",
-    })
+    playKudos(r.kudos)
 end
 
 --- 骨骼装配（默认）
@@ -350,9 +355,63 @@ local function buildScholarImage()
     }
 end
 
+--- 序列帧模式（config: ui.scholar.mode = "sprite"）：assets/sprites/scholar/ 图集
+-- 无限循环播放，呼吸/点头/翻页已内嵌于动画帧。播放速度按
+-- 「动画时长 / flip_interval」归一，翻页周期仍由 config 控制；
+-- 知识++ 由翻页完成帧（onFrameChange）驱动，与画面天然同步。
+-- 图集缺失时自动回退整图模式（包内资源探测只能走 cache:Exists，见 RISK S7-1）。
+local function buildScholarSprite()
+    local sp = Config.get("ui.scholar.sprite", nil) or {}
+    local src = type(sp.src) == "string" and sp.src or "sprites/scholar/sprite.json"
+    if not cache:Exists(src) then
+        print("[home] 书童图集缺失，回退整图模式: " .. tostring(src))
+        return buildScholarImage()
+    end
+    local size = tonumber(sp.width) or cfgNum("size", 320)
+    local animName = sp.anim_read or "read"
+    local kudosFrame = tonumber(sp.kudos_local_frame) or -1
+    local gen = scholarGen_ + 1
+    scholarGen_ = gen
+
+    local kudos = buildKudos()
+    local sprite = UI.Sprite {
+        src = src,
+        defaultAnimation = animName,
+        width = size, height = size,
+        objectFit = "contain",
+        onFrameChange = function(_frame, localFrame)
+            if localFrame == kudosFrame and gen == scholarGen_ then
+                playKudos(kudos)
+            end
+        end,
+    }
+    -- 循环周期归一：speed = 动画数据时长 / flip_interval（时长以 ms 烘焙进图集）
+    local dur = sprite:GetDuration(animName)
+    if dur > 0 then
+        sprite:SetSpeed(dur / math.max(0.5, cfgNum("flip_interval", 5)))
+    end
+    -- 序列帧模式不注册翻页/眨眼引用：scholarTick 对 kudos=nil 直接让位，
+    -- 知识++ 完全由 onFrameChange 驱动（与帧画面同步，不另起计时器）
+    scholarRefs_ = { gen = gen, sprite = sprite }
+
+    -- 外层满宽容器把定宽画框居中（父级是列容器，定宽子项不会自动居中）
+    return UI.Panel {
+        width = "100%",
+        height = size + 20,
+        alignItems = "center",
+        justifyContent = "center",
+        pointerEvents = "none",
+        children = { sprite },
+    }
+end
+
 --- 四宫格与底栏之间的书童区（用户指定位置）
 local function buildScholar()
-    if Config.get("ui.scholar.mode", "image") == "image" then
+    local mode = Config.get("ui.scholar.mode", "image")
+    if mode == "sprite" then
+        return buildScholarSprite()
+    end
+    if mode == "image" then
         return buildScholarImage()
     end
     return buildScholarRig()

@@ -423,7 +423,16 @@
       "spark_duration": 0.6
     },
     "scholar": {
-      "mode": "image",
+      "mode": "sprite",
+      "sprite": {
+        "_doc": "序列帧模式（mode=sprite）：atlas 循环播放，呼吸/翻页烘焙于动画帧；图集由 scripts/tools/scholar_spritesheet.py 产出",
+        "src": "sprites/scholar/sprite.json",
+        "anim_read": "read",
+        "anim_flip": "read",
+        "width": 320,
+        "height": 320,
+        "kudos_local_frame": 13
+      },
       "size": 320,
       "breathe_lift": 4,
       "breathe_degrees": 1.1,

@@ -584,3 +584,13 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | S12-3 | 整图模式下翻页完全不触发 | `scholarTick` 翻页段硬依赖 `r.foreBone`（骨骼专用）→ 整图模式直接 return | 翻页编排改为**按引用存在性分派**：抬手（仅骨骼）/ 书页（两种角度参数）/ 知识++（通用） | ✅（740 帧冒烟：0s 挂载 2 个常驻循环，~6s/12s 各 +2 翻页动效） |
 | S12-4 | 整图模式原先只有呼吸 + 知识++，没有翻页视觉 | — | 新增翻页页片：白色贴片盖在摊开的书上（left 66%/top 50.5%，15.5%×19.5%），`transformOrigin={0.08,0.95}` 绕书脊逆时针 -118° 翻动；另加绕椅底 ±0.8° 的坐姿轻摇 | ✅ |
 | S12-5 | 骨骼配置与资源残留 | — | config 移除 parts/joints/flip_degrees/arm_lift/blink_*；`assets/Textures/doll/` 整体删除 | ✅（验证 54 单测/300 关/巡检 11 站 0 告警） |
+
+### 13.0 书童第四版：序列帧（UI.Sprite 图集，2026-10-24 晚）
+
+| 编号 | 问题 | 根因 | 解法 | 状态 |
+|---|---|---|---|---|
+| S13-1 | `create_video_task` 连续 3 次返回 `execution_state: unknown`（响应流被代理中断，拿不到 task_id，无法查询/取消） | 远端代理对长耗时工具的响应通道系统性中断（120s/600s 超时均复现）；上游可能已创建 1–3 个任务（每个预估 800 积分），本地无凭据核实 | 放弃视频路线止损；改走「胶片图 → 切分」与「零积分烘焙」两条本地流水线。**待用户到 maker.taptap.cn 后台核对账单与任务列表**；是否 `mcp report` 上报此故障指纹待用户一句话 | ⚠️ 待用户核实账单 |
+| S13-2 | `generate_image` 报 `INSUFFICIENT_BALANCE`（账户生成积分耗尽） | 三次视频任务尝试疑似耗尽余额（或余额本就不足）；本次未执行未扣费 | 积分耗尽期间全部 AI 生成停摆。书童先用 `scholar_spritesheet.py --from-base` 零积分烘焙（现有 scholar.png + 翻页/呼吸/轻摇编排直接渲染成帧）；充值后一条命令换 AI 帧：`python3 scripts/tools/scholar_spritesheet.py --strip <胶片图.png> --grid 4x3 --out assets/sprites/scholar`（代码零改动，kudos_local_frame 以 SUMMARY 输出为准回填 config） | ⚠️ 待充值后换 AI 帧 |
+| S13-3 | 序列帧接入方案 | 交接文档推荐 UI.Sprite 路线 | 新增 `ui.scholar.mode = "sprite"`：`UI.Sprite` 无限循环播放 `assets/sprites/scholar/`（24 帧 / 320px / 372KB ≤600KB / 循环 4992ms）；播放速度按 `动画时长/flip_interval` 归一（翻页周期仍由 config 控制）；知识++ 由翻页完成帧 `onFrameChange` 驱动（与画面天然同步，替代 ticker 计时）；图集缺失自动回退整图模式（`cache:Exists` 探测，非 fs.exists） | ✅（760 帧冒烟：知识++ @160/460 帧、间隔恰 300 帧=5s，0 Lua 错误；巡检 11 站 0 告警） |
+| S13-4 | 冒烟探针首版漏标知识++ | 关键帧表键为 [0]/[0.38]/[0.56]/[0.84]/[1]（非连续整数键），`#keyframes` 返回 1 而非 5，特征匹配失败误报「循环中断」 | 探针改用 kudos 专属 `duration=1.35` 识别；教训：**Lua `#` 对非连续整数键表不可作计数** | ✅ |
+| S13-5 | 长冒烟入口帧数被 verify.sh 写死 60 | verify.sh 硬编码 `-validate-frames=60` | verify.sh 支持 `VALIDATE_FRAMES` / `VALIDATE_TIMEOUT` 环境变量覆盖（默认不变） | ✅ |
