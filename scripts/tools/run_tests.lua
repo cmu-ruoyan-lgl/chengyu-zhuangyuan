@@ -9,7 +9,6 @@ package.path = "scripts/?.lua;" .. package.path
 
 local json = require("core.json")
 local util = require("core.util")
-local fs = require("core.fs")
 local Grid = require("core.grid")
 local Validator = require("core.validator")
 local Solver = require("core.solver")

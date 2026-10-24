@@ -73,12 +73,35 @@ end
 -- 组件
 ------------------------------------------------------------------------------
 
+--- 图标贴片：assets/sprites/icons/icon_<key>.png 存在则显示贴图，
+--- 缺失时回退纯色圆点（图标资产不齐不破版，后续可无脑补 PNG）。
+function W.iconOrDot(key, size, dotColor)
+    size = size or 22
+    local src = "sprites/icons/icon_" .. key .. ".png"
+    if cache:Exists(src) then
+        return UI.Panel {
+            width = size, height = size,
+            backgroundImage = src,
+            backgroundFit = "contain",
+            marginRight = 10,
+        }
+    end
+    return UI.Panel {
+        width = size, height = size,
+        borderRadius = size / 2,
+        backgroundColor = dotColor,
+        marginRight = 10,
+    }
+end
+
 --- 顶栏信息胶囊（漆底 + 描金边）
 function W.chip(label, opts)
     opts = opts or {}
     local fontSize = opts.fontSize or Theme.font("topbar", 26) * 0.85
     local dot = nil
-    if opts.dotColor then
+    if opts.icon then
+        dot = W.iconOrDot(opts.icon, opts.iconSize or 22, opts.dotColor)
+    elseif opts.dotColor then
         dot = UI.Panel {
             width = 18, height = 18,
             borderRadius = 9,

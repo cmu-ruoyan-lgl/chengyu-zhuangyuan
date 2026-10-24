@@ -417,9 +417,32 @@ local function buildScholar()
     return buildScholarRig()
 end
 
---- 四宫格入口卡（白卡 + 主标题 + 状态行；副标题两行手动断行防横向裁断）
+--- 四宫格入口卡（白卡 + 图标 + 主标题 + 状态行；副标题两行手动断行防横向裁断）
 local function entryCard(title, sub, onTap, opts)
     opts = opts or {}
+    local kids = {}
+    if opts.icon then
+        kids[#kids + 1] = W.iconOrDot(opts.icon, 44, opts.iconDot)
+    end
+    kids[#kids + 1] = UI.Label {
+        text = title,
+        fontSize = Theme.font("toolbar", 28) * 1.15,
+        fontColor = opts.titleColor or c("ink"),
+        fontWeight = "bold",
+        textAlign = "center",
+        width = "100%",
+        flexShrink = 1,
+        marginTop = opts.icon and 10 or nil,
+    }
+    kids[#kids + 1] = UI.Label {
+        text = W.wrapLines(sub or "", 9),
+        fontSize = Theme.font("caption", 24),
+        fontColor = opts.subColor or c("ink_dim"),
+        textAlign = "center",
+        width = "100%",
+        marginTop = 10,
+        flexShrink = 1,
+    }
     return UI.Panel {
         flexGrow = 1,
         flexBasis = 0,
@@ -435,26 +458,7 @@ local function entryCard(title, sub, onTap, opts)
         paddingVertical = 26,
         paddingHorizontal = 12,
         onClick = onTap,
-        children = {
-            UI.Label {
-                text = title,
-                fontSize = Theme.font("toolbar", 28) * 1.15,
-                fontColor = opts.titleColor or c("ink"),
-                fontWeight = "bold",
-                textAlign = "center",
-                width = "100%",
-                flexShrink = 1,
-            },
-            UI.Label {
-                text = W.wrapLines(sub or "", 9),
-                fontSize = Theme.font("caption", 24),
-                fontColor = opts.subColor or c("ink_dim"),
-                textAlign = "center",
-                width = "100%",
-                marginTop = 10,
-                flexShrink = 1,
-            },
-        },
+        children = kids,
     }
 end
 
@@ -556,7 +560,8 @@ function Home.mount()
                 flexDirection = "row",
                 children = {
                     entryCard("府邸", "官职门客 · 签到任务" .. pendingMark,
-                        function() Nav.go("court") end),
+                        function() Nav.go("court") end,
+                        { icon = "home" }),
                     entryCard("每日挑战",
                         string.format("限时 %d 词 · 今日剩 %d 次",
                             ch.target or 0, ch.remaining or 0),
@@ -573,7 +578,7 @@ function Home.mount()
                                 alert("挑战开启失败", "请稍后再试（" .. tostring(err) .. "）")
                             end
                         end,
-                        { titleColor = c("seal_deep") }),
+                        { icon = "challenge", titleColor = c("seal_deep") }),
                 },
             },
             UI.Panel {
@@ -582,9 +587,11 @@ function Home.mount()
                 children = {
                     entryCard("成语图鉴",
                         string.format("已收录 %d 条 · 错题本", Game.bookCount()),
-                        function() Nav.go("book") end),
+                        function() Nav.go("book") end,
+                        { icon = "book" }),
                     entryCard("商店", "金币 · 道具 · 免广告",
-                        function() Nav.go("shop") end),
+                        function() Nav.go("shop") end,
+                        { icon = "shop" }),
                 },
             },
         },
@@ -602,10 +609,11 @@ function Home.mount()
                 justifyContent = "center",
                 children = {
                     W.chip(string.format("体力 %d/%d", Game.stamina(),
-                        Config.num("stamina.max", 50)), { dotColor = c("jade") }),
+                        Config.num("stamina.max", 50)),
+                        { icon = "stamina", dotColor = c("jade") }),
                     UI.Panel { width = 16 },
                     W.chip("金币 " .. tostring(Game.gold()),
-                        { dotColor = c("coin"), fg = c("gold_dark") }),
+                        { icon = "gold", dotColor = c("coin"), fg = c("gold_dark") }),
                 },
             },
             UI.Label {

@@ -174,7 +174,6 @@ end
 --- 开始今日挑战。返回 session 或 nil,err
 --- opts.hooks: { onCellFilled, onIdiomCompleted } 等额外事件回调
 function M.start(save, nowTs, opts)
-    opts = opts or {}
     M.rollDay(save, nowTs)
     local okStart, errStart = M.canStart(save, nowTs)
     if not okStart then return nil, errStart end

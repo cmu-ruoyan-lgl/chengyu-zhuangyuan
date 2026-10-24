@@ -55,7 +55,6 @@ end
 --- 用一次提示：优先免费额度 → 提示卡 → 金币购买
 --- 返回 ok, source(免费/道具/金币), err
 function M.useHint(save)
-    local maxPerLevel = Config.num("hints.max_per_level", 3)
     -- 单关上限由 session 侧判定，这里只看全局资源
     if M.freeHintsLeft(save) > 0 then
         save.hints_used_today = (tonumber(save.hints_used_today) or 0) + 1

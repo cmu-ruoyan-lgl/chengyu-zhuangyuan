@@ -465,6 +465,16 @@ function Play.goHome()
     end
 end
 
+--- 结果类提示统一弹窗（S8）；高频棋局反馈仍走 banner 吐司
+local function alertModal(title, message)
+    local ok, Modal = pcall(require, "ui.modal")
+    if ok and Modal and Modal.alert then
+        Modal.alert({ title = title, message = message })
+    else
+        print("[play] " .. tostring(title) .. ": " .. tostring(message))
+    end
+end
+
 --- 打开府邸页（S2 系统总入口：官职/门客/签到/图鉴/挑战）
 function Play.openCourt()
     Game.abandon()   -- 离开棋盘先写中断快照，返回时 Play.mount 才能无损恢复
@@ -517,16 +527,6 @@ local function buildBanner()
         } },
     }
     return refs.bannerBox
-end
-
---- 结果类提示统一弹窗（S8）；高频棋局反馈仍走 banner 吐司
-local function alertModal(title, message)
-    local ok, Modal = pcall(require, "ui.modal")
-    if ok and Modal and Modal.alert then
-        Modal.alert({ title = title, message = message })
-    else
-        print("[play] " .. tostring(title) .. ": " .. tostring(message))
-    end
 end
 
 local function showBanner(text, colorKey)

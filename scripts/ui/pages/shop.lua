@@ -5,7 +5,6 @@
 
 local UI = require("urhox-libs/UI")
 local Theme = require("ui.theme")
-local Config = require("core.config")
 local Game = require("system.game")
 local W = require("ui.widgets")
 

@@ -152,8 +152,8 @@ function Session:fill(r, c, char, bankIdx)
         self.state = "Idle"
         -- 错题本：把「填错格所属成语」记入（T18）
         local refs = {}
-        local cell = self.grid:getCell(r, c)
-        for _, owner in ipairs(cell and cell.owners or {}) do
+        local cellNow = self.grid:getCell(r, c)
+        for _, owner in ipairs(cellNow and cellNow.owners or {}) do
             local it = self.grid.idioms[owner]
             if it and it.idiom_ref then
                 local seen = false

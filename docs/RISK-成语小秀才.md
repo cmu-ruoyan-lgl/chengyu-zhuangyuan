@@ -594,3 +594,12 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | S13-3 | 序列帧接入方案 | 交接文档推荐 UI.Sprite 路线 | 新增 `ui.scholar.mode = "sprite"`：`UI.Sprite` 无限循环播放 `assets/sprites/scholar/`（24 帧 / 320px / 372KB ≤600KB / 循环 4992ms）；播放速度按 `动画时长/flip_interval` 归一（翻页周期仍由 config 控制）；知识++ 由翻页完成帧 `onFrameChange` 驱动（与画面天然同步，替代 ticker 计时）；图集缺失自动回退整图模式（`cache:Exists` 探测，非 fs.exists） | ✅（760 帧冒烟：知识++ @160/460 帧、间隔恰 300 帧=5s，0 Lua 错误；巡检 11 站 0 告警） |
 | S13-4 | 冒烟探针首版漏标知识++ | 关键帧表键为 [0]/[0.38]/[0.56]/[0.84]/[1]（非连续整数键），`#keyframes` 返回 1 而非 5，特征匹配失败误报「循环中断」 | 探针改用 kudos 专属 `duration=1.35` 识别；教训：**Lua `#` 对非连续整数键表不可作计数** | ✅ |
 | S13-5 | 长冒烟入口帧数被 verify.sh 写死 60 | verify.sh 硬编码 `-validate-frames=60` | verify.sh 支持 `VALIDATE_FRAMES` / `VALIDATE_TIMEOUT` 环境变量覆盖（默认不变） | ✅ |
+
+### 14.0 美术升级第一批 + 静态检查还债（2026-10-24 晚）
+
+| 编号 | 问题 | 根因 | 解法 | 状态 |
+|---|---|---|---|---|
+| S14-1 | 图标/按钮/格子全是代码色块，观感像原型（交接文档点名的最大短板） | `assets/Textures/` 只有 2 张图；积分耗尽无法 AI 生成 | `scripts/tools/make_icons.py` 零积分生成 14 枚统一风格图标（浅色圆角底 + 深色简笔图形，配色全读 config ui.color，4x 超采样）；`W.iconOrDot(key,size,dot)` 贴图组件：PNG 存在用图、缺失回退色点（后续 AI 替换同名 PNG 零代码改动）；接入主页四宫格（府邸/挑战/图鉴/商店）与底栏体力/金币胶囊 | ✅ 首版（AI 精修待充值） |
+| S14-2 | bg_main.png 单张 1.4MB（贴图预算 ≤3MB 的最大占项） | 水彩渐变 RGB PNG 体积天然大，且已是 1024×1536 | 256 色 MEDIANCUT + Floyd-Steinberg 抖动量化：1394KB → **597KB**（-57%），并排对比图目视无差异（渐变无 Banding）；stb_image 解码 P 模式 PNG 无兼容问题（本地 validate res=0 佐证） | ✅ |
+| S14-3 | `luacheck scripts/` 9 条 warning（红线要求 0/0，此前阶段遗留） | 各阶段增量未回跑全量 luacheck | 全部修复：session 内层 cell 遮蔽改名 / items·challenge·compliance·run_tests·court·shop 未用变量删除 / **play.lua `alertModal` 在定义前被 openCourt 引用（运行时走到即 nil 调用报错）——定义前移到首次使用之前** | ✅（0 warnings / 0 errors） |
+| S14-4 | 游戏 icon（512×512，上架素材）缺失 | 无设计稿 | `assets/Textures/icon_game.png`：薄荷→翠玉渐变底 + scholar.png + 白字描边「成语小秀才」（NotoSansSC-Bold，119KB），PIL 产出的上架占位首版 | ✅ 首版（最终版建议 AI 重出） |

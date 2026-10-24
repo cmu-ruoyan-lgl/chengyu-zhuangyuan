@@ -215,7 +215,7 @@ local function signinSection()
                         reward.item and (" + " .. tostring(reward.item)) or "")) },
             s.canClaim and "签到" or "今日已签",
             function()
-                local r, err = Game.claimSignin()
+                local r = Game.claimSignin()
                 act(r and (string.format("签到成功 +%d 金币", r.gold or 0)) or "今日已签到",
                     function() return r end)
             end,

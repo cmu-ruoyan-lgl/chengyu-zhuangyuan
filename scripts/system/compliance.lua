@@ -156,8 +156,7 @@ function M.reasonText(reason)
     if reason == "realname_required" then
         return "按国家规定，需完成实名认证后方可进入游戏"
     elseif reason == "minor_out_of_window" then
-        local days, hours = Config.get("compliance.minor_allowed_weekdays", {}),
-                            Config.get("compliance.minor_allowed_hours", {})
+        local hours = Config.get("compliance.minor_allowed_hours", {})
         return string.format("未成年人仅可在周五、周六、周日及法定节假日 %d:00 至 %d:00 进入游戏",
             tonumber(hours[1]) or 20, (tonumber(hours[#hours]) or 21) + 1)
     elseif reason == "minor_overtime" then
