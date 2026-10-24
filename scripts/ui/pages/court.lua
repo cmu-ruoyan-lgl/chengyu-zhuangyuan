@@ -262,8 +262,8 @@ local function challengeSection()
             function()
                 local s, err = Game.startChallenge()
                 if s then
-                    local ok, Play = pcall(require, "ui.pages.play")
-                    if ok and Play then Play.mount(nil, { session = s }) end
+                    local ok, Nav = pcall(require, "ui.nav")
+                    if ok and Nav then Nav.reset("play", { session = s }) end
                 else
                     lastMsg_ = "挑战不可用：" .. tostring(err)
                     Court.mount()
@@ -285,8 +285,8 @@ local function shopSection()
                 (tonumber(limit.monthly_cny) or 0) > 0
                     and string.format("（限额 %s 元）", moneyText(limit.monthly_cny)) or "（当前年龄段不可内购）")),
         }, "前往商店", function()
-            local ok, Shop = pcall(require, "ui.pages.shop")
-            if ok and Shop and Shop.mount then Shop.mount() end
+            local ok, Nav = pcall(require, "ui.nav")
+            if ok and Nav and Nav.go then Nav.go("shop") end
         end),
     }
     return W.sectionCard("商店", kids, { subtitle = "支付与广告均为待接入项" })
@@ -299,8 +299,8 @@ local function bookSection()
             line1(string.format("成语图鉴：已收录 %d 条", Game.bookCount()), true),
             line2(string.format("错题本：%d 条", #wrong)),
         }, "查看图鉴", function()
-            local ok, BookPage = pcall(require, "ui.pages.book")
-            if ok and BookPage and BookPage.mount then BookPage.mount() end
+            local ok, Nav = pcall(require, "ui.nav")
+            if ok and Nav and Nav.go then Nav.go("book") end
         end),
     }
     return W.sectionCard("图鉴与错题本", kids, { subtitle = "填错的成语自动进错题本" })
@@ -312,14 +312,14 @@ end
 
 function Court.mount()
     local back = function()
-        local ok, Play = pcall(require, "ui.pages.play")
-        if ok and Play and Play.mount then Play.mount() end
+        local ok, Nav = pcall(require, "ui.nav")
+        if ok and Nav and Nav.back then Nav.back() end
     end
 
     local status = UI.Label {
         text = lastMsg_ or "",
         fontSize = fs("caption", 24),
-        fontColor = c("gold"),
+        fontColor = c("jade_deep"),
         textAlign = "center",
         width = "100%",
         flexShrink = 1,
@@ -357,7 +357,7 @@ function Court.mount()
         children = {
             W.pageHeader("府邸", {
                 W.chip("金币 " .. tostring(Game.gold()), {
-                    dotColor = c("coin"), fg = c("gold"),
+                    dotColor = c("coin"), fg = c("gold_dark"),
                 }),
             }, back),
             body,

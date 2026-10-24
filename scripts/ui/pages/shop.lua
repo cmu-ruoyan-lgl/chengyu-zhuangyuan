@@ -158,7 +158,7 @@ function Shop.mount()
     local status = UI.Label {
         text = msg_ or "",
         fontSize = fs("caption", 24),
-        fontColor = c("gold"),
+        fontColor = c("jade_deep"),
         textAlign = "center",
         width = "100%",
         flexShrink = 1,
@@ -197,11 +197,11 @@ function Shop.mount()
         children = {
             W.pageHeader("商店", {
                 W.chip("金币 " .. tostring(Game.gold()), {
-                    dotColor = c("coin"), fg = c("gold"),
+                    dotColor = c("coin"), fg = c("gold_dark"),
                 }),
             }, function()
-                local ok, Court = pcall(require, "ui.pages.court")
-                if ok and Court and Court.mount then Court.mount() end
+                local ok, Nav = pcall(require, "ui.nav")
+                if ok and Nav and Nav.back then Nav.back() end
             end),
             body,
         },

@@ -492,3 +492,15 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 
 - 题库 829 条 vs PRD §3.2.4 的 MVP 目标 3800 条（L1 800 + L2 2000~3000 + L3 1000~2000）。L2/L3 两层未采购，属内容采购事项，已列入交付文档的「待用户处理清单」。当前 829 条已满足 DEV T8 的验收口径（L1 800 条、字段完整、释义非空）。
 - 段 1–2（1–150 关）按 DEV §0.0.1「已生成关卡不得全量重生成」保持原样，因此这两段的用词复用率仍偏高（段 2 最热 8 次）。若后续接受重生成，可在扩库后整体再跑一次，复用率会明显下降。
+
+### 5.0 体验修复：布局对称 / 主页面 / 清新配色（2026-10-24 上午）
+
+| 编号 | 问题 | 根因 | 解法 | 状态 |
+|---|---|---|---|---|
+| S5-1 | **整体布局偏右**（用户截图实测：棋盘卡片左留白 20px、右留白仅 3px） | 棋盘卡片同时写 `width="100%"` 和 `marginHorizontal=24`——Yoga 与 CSS 一样，100% 宽不会为 margin 收缩，卡片向右溢出父容器 48 单位（左 margin 撑开、右侧穿出被背景白边掩盖） | 外层 section 改用 `paddingHorizontal=24`，卡片 `width="100%"` 内嵌，Yoga 的 padding 会正确收缩子级可用宽 | ✅ 已根治（同文件两处分支都改，注释里写明原因防回退） |
+| S5-2 | **没有主页面**，游戏页无法返回主菜单；登录后直接进棋盘 | 入口流程是 login → play，从未设计主页 | 新增 `ui/nav.lua` 导航栈（reset/go/back）+ `ui/pages/home.lua`（标题/继续闯关/府邸/挑战/图鉴/商店/体力金币）；main 合规后落地主页；play 顶栏左侧加「‹ 主页」按钮 | ✅ |
+| S5-3 | 从棋盘跳府邸再返回会**丢关卡进度并可能重复扣体力** | `Play.openCourt` 直接挂府邸页，没写中断快照；返回时 `Play.mount()` 走 `Game.nextLevel()` 开新会话 | 离开棋盘一律先 `Game.abandon()`（写快照）；回主页时挑战模式改走 `Game.finishChallenge()` 交卷结算——挑战卷快照写进主线 `save.current` 会串关 | ✅（openCourt 与 goHome 都已处理） |
+| S5-4 | 配色是暗沉原木风，用户要求清新自然益智风 | 初版定位「漆底描金」中国风 | `config.ui.color` 整套换为薄荷绿/暖白/金黄（38 键）；`bg_main.png` 重生成浅色水彩（薄荷绿→天蓝渐变、竹叶蒲公英、中间留白）；`text_light` 语义从「深底浅字」反转为「浅底深字」，深色遮罩上的文字统一改 `cream/cream_dim`；浅底上的低对比金色文字改 `gold_dark/jade_deep` | ✅（全页面巡检 0 Layout Warning） |
+| S5-5 | 配色键 `cream` **从未在 config 定义**，多处按钮文字默默渲染成黑色（`Config.color` 兜底默认色） | 新增色键时漏配；无校验 | 补齐 `cream`/`cream_dim`；`府邸/交卷/下一关` 等按钮文字恢复为设计的米白色 | ✅ |
+| S5-6 | **激励广告 mock 永远播不完**、奖励发不出 | `admodal` 用 `os.clock()` 做倒计时——该平台 os.clock 不推进（RISK S3-4 同类问题，当时只修了防沉迷计时，漏了广告） | 改为 Ticker 帧间隔 dt 累加（`st.left - dt`） | ✅ |
+| S5-7 | 主页在小高度视口溢出（headless 巡检窗口 1322×546 触发 2 条 Layout Warning） | 主页内容总高 ~925px，根容器 space-between 顶死 | 主体改放 `ScrollView`（flexGrow=1, flexBasis=0），底栏固定；大按钮 Label 加 flexShrink | ✅（巡检 0 告警） |

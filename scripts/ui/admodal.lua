@@ -17,7 +17,7 @@ local AD = {}
 local st = {
     active = false,
     id = nil,
-    endsAt = 0,
+    left = 0,
     overlay = nil,
     label = nil,
     onGranted = nil,
@@ -29,14 +29,16 @@ local st = {
 -- 逐帧倒计时
 ------------------------------------------------------------------------------
 
---- 倒计时由 os.clock 驱动（不依赖引擎 dt，避免切后台后跳变）
-function AD.tick()
+--- 倒计时由 Ticker 的帧间隔 dt 驱动。
+--- 注意：不能用 os.clock()——实测该平台上它几乎不推进（RISK S3-4），
+--- 会导致广告永远播不完、奖励永远发不出。
+function AD.tick(dt)
     if not st.active then return end
-    local left = math.max(0, st.endsAt - os.clock())
+    st.left = math.max(0, (st.left or 0) - (tonumber(dt) or 0))
     if st.label then
-        st.label:SetStyle({ text = string.format("广告播放中… %d", math.ceil(left)) })
+        st.label:SetStyle({ text = string.format("广告播放中… %d", math.ceil(st.left)) })
     end
-    if left <= 0 then
+    if st.left <= 0 then
         AD.finish()
     end
 end
@@ -95,7 +97,7 @@ function AD.show(placementId, opts)
     end
 
     st.id = placementId
-    st.endsAt = os.clock() + dur
+    st.left = dur
     st.onGranted = opts.onGranted
     st.onClose = opts.onClose
     st.active = true
@@ -123,7 +125,7 @@ function AD.show(placementId, opts)
             UI.Label {
                 text = (placement and placement.name) or "广告",
                 fontSize = Theme.font("title", 56) * 0.7,
-                fontColor = W.c("gold"),
+                fontColor = W.c("jade_deep"),
                 fontWeight = "bold",
                 textAlign = "center",
             },
@@ -155,10 +157,10 @@ function AD.show(placementId, opts)
                     end, {
                         gradient = {
                             direction = "to-bottom",
-                            from = W.c("panel_edge"),
-                            to = W.c("ink_dim"),
+                            from = W.c("panel"),
+                            to = W.c("panel_edge"),
                         },
-                        fg = W.c("cream"),
+                        fg = W.c("ink"),
                     }),
                 },
             },

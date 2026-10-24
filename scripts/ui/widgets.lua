@@ -237,12 +237,10 @@ function W.pageHeader(title, chips, onBack)
             paddingHorizontal = 22,
             paddingVertical = 8,
             borderRadius = 26,
-            backgroundGradient = {
-                direction = "to-bottom",
-                from = W.c("chip_bg"),
-                to = W.c("ink"),
-            },
-            textColor = W.c("text_light"),
+            backgroundColor = W.c("chip_bg"),
+            borderWidth = 2,
+            borderColor = W.c("chip_edge"),
+            textColor = W.c("ink"),
             fontWeight = "bold",
             boxShadow = W.shadow(12, 4, 90),
             onClick = onBack,
@@ -250,7 +248,7 @@ function W.pageHeader(title, chips, onBack)
         UI.Label {
             text = title,
             fontSize = Theme.font("topbar", 26) * 1.05,
-            fontColor = W.c("gold"),
+            fontColor = W.c("ink"),
             fontWeight = "bold",
             flexShrink = 1,
         },
@@ -258,7 +256,7 @@ function W.pageHeader(title, chips, onBack)
     local list = chips or {}
     if #list == 0 then
         list = { W.chip("金币 " .. tostring(require("system.game").gold()),
-            { dotColor = W.c("coin"), fg = W.c("gold") }) }
+            { dotColor = W.c("coin"), fg = W.c("gold_dark") }) }
     end
     for _, ch in ipairs(list) do kids[#kids + 1] = ch end
     return UI.Panel {

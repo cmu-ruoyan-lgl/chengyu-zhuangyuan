@@ -1,11 +1,11 @@
--- 入口：初始化 存档/体力/音频 → 挂载 play 页。
+-- 入口：初始化 存档/体力/音频 → 合规闸门 → 主页（主菜单）。
 -- 引擎约定：脚本需实现 Start()；Stop() 负责清理（写中断快照）。
 
 local UI = require("urhox-libs/UI")
 local Config = require("core.config")
 local Game = require("system.game")
 local SFX = require("system.audio")
-local Play = require("ui.pages.play")
+local Nav = require("ui.nav")
 local Login = require("ui.pages.login")
 
 local booted = false
@@ -52,13 +52,9 @@ function Start()
         return
     end
 
-    local s = Play.mount()
-    if s then
-        print("[main] play 页已挂载，关卡 " .. tostring(s.levelId)
-            .. string.format("（体力 %d，金币 %d）", Game.stamina(), Game.gold()))
-    else
-        print("[main] 体力不足，已挂体力门（当前体力 " .. tostring(Game.stamina()) .. "）")
-    end
+    -- 默认落地主页（主菜单），由主页进闯关/府邸/挑战/商店
+    Nav.reset("home")
+    print(string.format("[main] 主页已挂载（体力 %d，金币 %d）", Game.stamina(), Game.gold()))
     booted = true
 end
 

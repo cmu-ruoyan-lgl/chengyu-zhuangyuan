@@ -122,8 +122,8 @@ function BookPage.mount()
         backgroundFit = "cover",
         children = {
             W.pageHeader("图鉴", nil, function()
-                local ok, Court = pcall(require, "ui.pages.court")
-                if ok and Court and Court.mount then Court.mount() end
+                local ok, Nav = pcall(require, "ui.nav")
+                if ok and Nav and Nav.back then Nav.back() end
             end),
             body,
         },

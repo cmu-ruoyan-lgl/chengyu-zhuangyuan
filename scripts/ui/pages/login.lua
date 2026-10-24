@@ -73,7 +73,7 @@ local function buildAgeGate()
             UI.Label {
                 text = "成语小秀才",
                 fontSize = Theme.font("title", 56) * 1.3,
-                fontColor = c("gold"),
+                fontColor = c("jade_deep"),
                 fontWeight = "bold",
                 textAlign = "center",
             },
@@ -91,16 +91,25 @@ local function buildAgeGate()
                     bigButton("我已成年（18 岁及以上）", "可正常游玩与付费", function()
                         Game.setRealname(Config.num("compliance.default_adult_age", 25))
                         Login.afterVerify()
-                    end),
+                    end, {
+                        gradient = {
+                            direction = "to-bottom", from = c("jade"), to = c("jade_deep"),
+                        },
+                        fg = c("cream"),
+                        subColor = c("cream_dim"),
+                        border = c("jade_deep"),
+                        glow = "jade_deep",
+                    }),
                     bigButton("我未满 18 岁", "受防沉迷时段与时长限制", function()
                         Game.setRealname(Config.num("compliance.default_minor_age", 12))
                         Login.afterVerify()
                     end, {
                         gradient = {
-                            direction = "to-bottom", from = c("panel_edge"), to = c("ink_dim"),
+                            direction = "to-bottom", from = c("panel"), to = c("panel_edge"),
                         },
-                        fg = c("cream"),
-                        subColor = c("text_light_dim"),
+                        fg = c("ink"),
+                        subColor = c("ink_dim"),
+                        border = c("panel_edge"),
                         glow = nil,
                     }),
                 },
@@ -130,14 +139,14 @@ local function buildBlocked(info)
             UI.Label {
                 text = "暂时无法进入",
                 fontSize = Theme.font("title", 56),
-                fontColor = c("text_light"),
+                fontColor = c("ink"),
                 fontWeight = "bold",
                 textAlign = "center",
             },
             UI.Label {
                 text = info.reasonText,
                 fontSize = Theme.font("toolbar", 28),
-                fontColor = c("gold"),
+                fontColor = c("seal_deep"),
                 textAlign = "center",
                 marginTop = 20,
             },
@@ -150,22 +159,23 @@ local function buildBlocked(info)
             },
             bigButton("返回", nil, function() Login.mount() end, {
                 gradient = {
-                    direction = "to-bottom", from = c("panel_edge"), to = c("ink_dim"),
+                    direction = "to-bottom", from = c("panel"), to = c("panel_edge"),
                 },
-                fg = c("cream"),
+                fg = c("ink"),
+                border = c("panel_edge"),
                 glow = nil,
             }),
         },
     }
 end
 
---- 认证完成后的路由
+--- 认证完成后的路由：可游玩 → 主页（主菜单）
 function Login.afterVerify()
     local info = Game.compliance()
     if info.canPlay then
-        local ok, Play = pcall(require, "ui.pages.play")
-        if ok and Play and Play.mount then
-            Play.mount()
+        local ok, Nav = pcall(require, "ui.nav")
+        if ok and Nav and Nav.reset then
+            Nav.reset("home")
             return
         end
     end

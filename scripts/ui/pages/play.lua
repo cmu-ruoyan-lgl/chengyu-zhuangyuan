@@ -139,7 +139,7 @@ local function buildTopBar(session)
         glow = "gold",
     })
     refs.topStamina = chip("体力 --", { dotColor = c("jade") })
-    refs.topGold = chip("金币 --", { dotColor = c("coin"), fg = c("gold") })
+    refs.topGold = chip("金币 --", { dotColor = c("coin"), fg = c("gold_dark") })
     -- 挑战倒计时（仅挑战模式可见，由 Play.tick 每秒刷新）
     refs.challengeChip = chip("剩余 --", { dotColor = c("seal"), fg = c("text_light") })
     if not isChallenge then refs.challengeChip:SetVisible(false) end
@@ -153,9 +153,10 @@ local function buildTopBar(session)
         justifyContent = "space-between",
         paddingHorizontal = 24,
         children = {
-            chip("成语小秀才", {
+            chip("‹ 主页", {
                 bg = withAlpha(c("chip_bg"), 235),
-                border = c("gold_dark"), fg = c("gold"), bold = true, glow = "gold_dark",
+                border = c("chip_edge"), fg = c("ink"), bold = true,
+                onClick = function() Play.goHome() end,
             }),
             refs.levelChip, refs.challengeChip, refs.topStamina, refs.topGold,
         },
@@ -198,16 +199,20 @@ local function buildBoard(session)
             width = "100%",
             height = pct(Theme.ratio("board", 0.446)),
             flexShrink = 1,
-            marginHorizontal = 24,
-            backgroundColor = c("panel"),
-            borderRadius = 26,
-            boxShadow = shadow(26, 10, 120),
-            justifyContent = "center",
-            alignItems = "center",
-            children = { UI.Label {
-                text = "体力恢复后即可闯关",
-                fontSize = Theme.font("caption", 24),
-                fontColor = c("ink_dim"),
+            paddingHorizontal = 24,
+            children = { UI.Panel {
+                width = "100%",
+                height = "100%",
+                backgroundColor = c("panel"),
+                borderRadius = 26,
+                boxShadow = shadow(26, 10, 120),
+                justifyContent = "center",
+                alignItems = "center",
+                children = { UI.Label {
+                    text = "体力恢复后即可闯关",
+                    fontSize = Theme.font("caption", 24),
+                    fontColor = c("ink_dim"),
+                } },
             } },
         }
     end
@@ -269,22 +274,30 @@ local function buildBoard(session)
         }
     end
 
+    -- 注意：卡片不能直接写 width="100%" + marginHorizontal——Yoga 与 CSS 一样，
+    -- 100% 宽不会为 margin 收缩，会向右溢出父容器（实测右留白被吃掉，整体右偏）。
+    -- 正确姿势：外层 section 用 paddingHorizontal，卡片 width="100%" 内嵌。
     return UI.Panel {
         width = "100%",
         height = pct(Theme.ratio("board", 0.446)),
         flexShrink = 1,
-        marginHorizontal = 24,
-        flexDirection = "column",
-        justifyContent = "center",
-        alignItems = "center",
-        paddingHorizontal = 16,
-        paddingVertical = 14,
-        backgroundColor = c("panel"),
-        borderRadius = 26,
-        borderWidth = 3,
-        borderColor = c("panel_edge"),
-        boxShadow = shadow(26, 10, 120),
-        children = rowPanels,
+        paddingHorizontal = 24,
+        paddingVertical = 6,
+        children = { UI.Panel {
+            width = "100%",
+            height = "100%",
+            flexDirection = "column",
+            justifyContent = "center",
+            alignItems = "center",
+            paddingHorizontal = 16,
+            paddingVertical = 8,
+            backgroundColor = c("panel"),
+            borderRadius = 26,
+            borderWidth = 3,
+            borderColor = c("panel_edge"),
+            boxShadow = shadow(26, 10, 120),
+            children = rowPanels,
+        } },
     }
 end
 
@@ -435,10 +448,30 @@ local function buildToolBar(session)
     }
 end
 
+--- 回主页：闯关模式先写中断快照（回来不掉进度）；挑战模式按交卷结算
+--- （挑战卷快照若写进主线 current，恢复时会串关，故绝不快照挑战会话）
+function Play.goHome()
+    if Game.mode() == "challenge" then
+        Game.finishChallenge()
+    else
+        Game.abandon()
+    end
+    local ok, Nav = pcall(require, "ui.nav")
+    if ok and Nav and Nav.reset then
+        Nav.reset("home")
+    end
+end
+
 --- 打开府邸页（S2 系统总入口：官职/门客/签到/图鉴/挑战）
 function Play.openCourt()
-    local ok, Court = pcall(require, "ui.pages.court")
-    if ok and type(Court) == "table" and Court.mount then
+    Game.abandon()   -- 离开棋盘先写中断快照，返回时 Play.mount 才能无损恢复
+    local ok, Nav = pcall(require, "ui.nav")
+    if ok and Nav and Nav.go then
+        Nav.go("court")
+        return
+    end
+    local okC, Court = pcall(require, "ui.pages.court")
+    if okC and type(Court) == "table" and Court.mount then
         Court.mount()
     else
         showBanner("府邸页加载失败", "seal")
@@ -690,18 +723,18 @@ local function buildGate()
             paddingVertical = 16,
             borderRadius = 30,
             backgroundGradient = primary
-                and { direction = "to-bottom", from = c("gold"), to = c("gold_deep") }
-                or { direction = "to-bottom", from = c("chip_bg"), to = c("ink") },
-            textColor = primary and c("ink") or c("text_light"),
+                and { direction = "to-bottom", from = c("jade"), to = c("jade_deep") }
+                or { direction = "to-bottom", from = c("panel"), to = c("panel_edge") },
+            textColor = primary and c("cream") or c("ink"),
             fontWeight = "bold",
-            boxShadow = shadow(14, 5, 110, "gold_dark"),
+            boxShadow = shadow(14, 5, 110, "jade_deep"),
             onClick = onTap,
         }
     end
 
     refs.gateInfo = UI.Label {
         text = "", fontSize = capSize,
-        fontColor = c("text_light_dim"),
+        fontColor = c("cream_dim"),
         textAlign = "center",
     }
 
@@ -718,7 +751,7 @@ local function buildGate()
             UI.Label {
                 text = "体力不足",
                 fontSize = Theme.font("title", 56),
-                fontColor = c("text_light"),
+                fontColor = c("cream"),
                 fontWeight = "bold",
                 textAlign = "center",
             },
@@ -837,7 +870,7 @@ function Play.onHint()
     if not s then return end
     local hint, err = s:useHint()
     if hint then
-        showBanner("已提示一个字", "gold")
+        showBanner("已提示一个字", "gold_dark")
     elseif err == "hint_limit" then
         showBanner("本关提示已用完", "seal")
     end
@@ -857,7 +890,7 @@ function Play.onShuffle()
     if not s then return end
     s:useShuffle()
     Play.mount(nil, { session = s, remountOnly = true })
-    showBanner("已重新洗牌", "gold")
+    showBanner("已重新洗牌", "gold_dark")
 end
 
 --- 通关后进入下一关（优先恢复中断快照）
@@ -881,7 +914,7 @@ function Play.onGateAd()
     end
     AD.show("stamina", {
         onGranted = function()
-            showBanner("广告奖励已到账", "jade")
+            showBanner("广告奖励已到账", "jade_deep")
             if Game.stamina() >= Game.staminaCost() then
                 if refs.gate then refs.gate:SetVisible(false) end
                 Play.onNextLevel()
@@ -987,7 +1020,7 @@ local function buildComplianceGate()
                 UI.Label {
                     text = "健康游戏提示",
                     fontSize = Theme.font("title", 56),
-                    fontColor = c("gold"),
+                    fontColor = c("ink"),
                     fontWeight = "bold",
                     textAlign = "center",
                 },
@@ -1052,7 +1085,7 @@ local function hookSessionEvents(s)
             y = h * 0.30,
             color = c("jade"),
         })
-        showBanner("成语达成：" .. tostring(p.answer), "jade")
+        showBanner("成语达成：" .. tostring(p.answer), "jade_deep")
     end)
     s:on("on_cross_validated", function() SFX.play("cross_ok") end)
     s:on("on_undo", function() SFX.play("fill_ok", 0.35); Play.refresh() end)

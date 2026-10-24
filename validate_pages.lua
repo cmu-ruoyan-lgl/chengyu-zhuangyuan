@@ -39,24 +39,27 @@ function Start()
         end
         if stage == 0 and frame >= 10 then
             stage = 1
-            -- 模拟实名通过（成年），进入棋盘
+            -- 模拟实名通过（成年），进入主页（主菜单）
             Game.setRealname(Config.num("compliance.default_adult_age", 25))
-            mount("棋盘页", "ui.pages.play")
-        elseif stage == 1 and frame >= 18 then
+            mount("主页", "ui.pages.home")
+        elseif stage == 1 and frame >= 16 then
             stage = 2
-            mount("府邸页", "ui.pages.court")
-        elseif stage == 2 and frame >= 28 then
+            mount("棋盘页", "ui.pages.play")
+        elseif stage == 2 and frame >= 24 then
             stage = 3
-            mount("商店页", "ui.pages.shop")
-        elseif stage == 3 and frame >= 36 then
+            mount("府邸页", "ui.pages.court")
+        elseif stage == 3 and frame >= 32 then
             stage = 4
-            mount("图鉴页", "ui.pages.book")
-        elseif stage == 4 and frame >= 42 then
+            mount("商店页", "ui.pages.shop")
+        elseif stage == 4 and frame >= 38 then
             stage = 5
+            mount("图鉴页", "ui.pages.book")
+        elseif stage == 5 and frame >= 44 then
+            stage = 6
             -- 回到棋盘，验证重复挂载不炸
             mount("棋盘页（二次）", "ui.pages.play")
-        elseif stage == 5 and frame >= 47 then
-            stage = 6
+        elseif stage == 6 and frame >= 49 then
+            stage = 7
             -- 第 3 段是 7×7（T24 新增 151–300 关）：验证棋盘按 rows/cols 自适应
             local ok151, err = Game.enterLevel(151)
             print(string.format("[validate_pages] enterLevel(151) %s %s",
@@ -67,8 +70,8 @@ function Start()
                 print(string.format("[validate_pages] 151 关棋盘尺寸 %dx%d", r, c2))
             end
             mount("棋盘页（7×7 第151关）", "ui.pages.play")
-        elseif stage == 6 and frame >= 53 then
-            stage = 7
+        elseif stage == 7 and frame >= 55 then
+            stage = 8
             -- 每日挑战是 8×8：验证最大棋盘不溢出
             local okCh, errCh = Game.startChallenge()
             print(string.format("[validate_pages] startChallenge %s %s",
@@ -79,6 +82,10 @@ function Start()
                 print(string.format("[validate_pages] 挑战棋盘尺寸 %dx%d", r, c2))
             end
             mount("棋盘页（8×8 挑战）", "ui.pages.play")
+        elseif stage == 8 and frame >= 58 then
+            stage = 9
+            -- 收尾：回主页，验证 Nav 栈外的直挂也正常
+            mount("主页（二次）", "ui.pages.home")
         end
     end)
 end
