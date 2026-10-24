@@ -421,6 +421,12 @@
       "spark_count": 10,
       "spark_radius": 130,
       "spark_duration": 0.6
+    },
+    "scholar": {
+      "size": 300,
+      "bob_amplitude": 6,
+      "bob_period": 3.2,
+      "flip_interval": 5
     }
   },
   "rank": {

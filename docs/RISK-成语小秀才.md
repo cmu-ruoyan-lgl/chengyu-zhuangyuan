@@ -534,3 +534,14 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | S8-1 | 挑战次数用完要**单独弹窗**提醒；领俸禄等所有结果类提示也统一弹窗 | 此前各页用「状态条文字」（court/shop）或「横幅吐司」（play/home），风格不一且容易被忽略 | 新增 `ui/modal.lua` 统一弹窗：白卡 + 翠绿图标点 + 标题 + 手动断行正文 + 渐变主按钮，进场弹性动画；替换点：主页挑战提示、府邸全部操作回执（俸禄/升级/签到/任务/门客）、商店购买回执、棋盘页低频提示（提示用完/广告类）。棋局高频即时反馈（填字对错/成语达成）保留轻量吐司——弹窗会打断连击节奏 | ✅（巡检含弹窗挂载站，0 Layout Warning） |
 | S8-2 | 棋盘页底部腾出空间留给广告位 | 布局比例占满全屏 | `layout_ratio` 重排：bank .25→.215、toolbar .142→.115、topbar .088→.08，新增 `ad_reserve=.076` 底部留白（1920 基准 ≈146px），备选区与道具栏整体上移，不与棋盘重合 | ✅ |
 | S8-3 | banner 压到 0.045 后矮视口溢出告警 | banner 胶囊 = 24px 文案 + 8px 内边距 + 边框 ≈ 34px，0.045×546 只剩 24.6px | banner 恢复 0.06，广告预留从 0.091 降到 0.076 | ✅（0 告警） |
+
+### 9.0 主页书童循环动画（2026-10-24 下午，用户需求）
+
+| 编号 | 需求/问题 | 根因 | 解法 | 状态 |
+|---|---|---|---|---|
+| S9-1 | 主页四宫格与底栏之间加入卡通书童循环动画：面朝右下 45° 坐小木椅看书，每次翻页头顶右上冒「知识++」 | — | ImageGen 生成 Q 版书童（PNG 512×512 透明底，抠底+裁水印），配 `ui.scholar` 配置（size/bob_amplitude/bob_period/flip_interval）；呼吸浮动 = 常驻循环关键帧动画；翻页/知识++ 由 ui/ticker 按 flip_interval 调度 | ✅ |
+| S9-2 | **动画引擎不支持 scaleX 关键帧**：`Transition.transitionableProps` 只有 opacity/scale/rotate/translateX/Y/borderRadius/borderWidth/shadow*/颜色——scaleX 会被当「不可插值属性」在段中点硬切跳变 | 引擎属性白名单 | 翻页改用 translateX + rotate「掀页掠过」动效（白页从书页右侧向左掠过并旋转） | ✅ |
+| S9-3 | **onComplete 链式循环会断**：`Widget:BaseUpdate` 完成分支在 onComplete 回调之后执行 `self.animation_ = nil`，把回调里刚创建的下一个动画立即清掉（实测呼吸只走两拍就停） | 引擎实现顺序问题 | 循环一律用引擎原生 `loop = true` + `direction = "alternate"`（anim.active 恒真，不走清理分支）；页面切换由 `UI.SetRoot(root, true)` → `Widget:Destroy()` 注销追踪，无泄漏 | ✅（420/740 帧冒烟：呼吸常驻 1 个动画，翻页 5s/10s 准时触发，0 Lua 错误） |
+| S9-4 | 翻页高光/知识++ 挂在全宽容器上，百分比定位随屏宽漂移 | 定位基准错 | page/kudos 改挂 300×300 的 body（与图集同框），百分比与图集部位一一对应（书页 ≈46%~74% 横 / 48%~68% 纵；头顶右上 ≈62% 横 / -2% 纵） | ✅ |
+| S9-5 | opacity 动画元素不能配 visible=false（display:none 直接不渲染） | 引擎语义 | 一律 `opacity = 0` 起始，动画结束回落 props 原值 | ✅ |
+| S9-6 | 「知识++」需入字体子集 | 新文案 | 采集脚本按全量非 ASCII 扫描已覆盖；重建后 9782 字 | ✅ |
