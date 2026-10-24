@@ -26,65 +26,26 @@ local c = W.c
 local shadow = W.shadow
 
 ------------------------------------------------------------------------------
--- 书童动画（S12：回归 AI 整图 scholar.png；骨骼方案 S10/S11 已被用户否决）
--- 整图模式（默认）：scholar.png + 呼吸起伏/坐姿轻摇 + 翻页页片 + 知识++。
--- 翻页页片是盖在书上（右页区域）的白色贴片，绕书脊（页片左下角）翻动。
+-- 书童动画（S13：序列帧 sprite 模式为默认；S12 整图 image 模式为回退兜底）
+-- sprite：UI.Sprite 图集无限循环（呼吸/翻页烘焙于帧），速度按 flip_interval
+--   归一，知识++ 由翻页帧 onFrameChange 驱动（与画面天然同步）。
+-- image：单张 scholar.png + 呼吸起伏/坐姿轻摇 + 翻页页片 + 知识++。
 -- 循环一律 loop + alternate（onComplete 链会被 BaseUpdate 完成分支的
 -- self.animation_ = nil 杀掉，见 RISK 9.0）。同一 widget 只有一个动画槽，
 -- 所以「起伏」与「轻摇」必须分挂两层。
--- （buildScholarRig 骨骼分支保留但默认不走：S10 AI 图拟合姿态诡异、
---   S11 程序化绘制风格太丑，分别见 RISK 10.0 / 11.0；部件资源已移除。）
+-- （rig 骨骼分支已删除：S10 AI 拟合姿态诡异、S11 程序化绘制太丑，
+--   部件资源亦已移除，见 RISK 10.0/11.0/12.0。）
 ------------------------------------------------------------------------------
 
-local scholarRefs_ = nil       -- { gen, page, foreBone, kudos, eyesOpen, eyesShut }
+local scholarRefs_ = nil       -- { gen, sprite?, page?, kudos? }
 local scholarHooked_ = false   -- ticker 只挂一次
 local scholarGen_ = 0          -- 每次挂载 +1，旧代际的 tick 到代即停
-local scholarFlipIn_ = 0       -- 距下次翻页的秒数
-local scholarBlinkIn_ = 3      -- 距下次眨眼的秒数
-local scholarBlinkLeft_ = 0    -- 闭眼剩余时长
+local scholarFlipIn_ = 0       -- 距下次翻页的秒数（image 模式）
 
 local pct = W.pct
 
 local function cfgNum(key, default)
     return Config.num("ui.scholar." .. key, default)
-end
-
---- 关节坐标（比例 0..1）：config 优先，缺失时用传入兜底
-local function jointOf(name, fx, fy)
-    local j = Config.get("ui.scholar.joints." .. name, nil)
-    if type(j) == "table" and tonumber(j[1]) then
-        return { tonumber(j[1]), tonumber(j[2]) }
-    end
-    return { fx, fy }
-end
-
---- 一根骨：与画框同尺寸的透明容器，绕关节旋转，子节点继承其变换。
--- 必须绝对定位：否则多层 100% 高度的骨会在列容器里纵向叠加（实测 320→960 溢出）
-local function bone(jointName, fx, fy, children)
-    return UI.Panel {
-        position = "absolute",
-        left = 0, top = 0,
-        width = "100%", height = "100%",
-        transformOrigin = jointOf(jointName, fx, fy),
-        pointerEvents = "none",
-        children = children,
-    }
-end
-
---- 部件贴图：整幅画布、已就位，故恒为 0,0,100%,100%
-local function part(name)
-    local img = Config.get("ui.scholar.parts." .. name, nil)
-    if type(img) ~= "string" then
-        img = "Textures/doll/scholar_" .. name .. ".png"
-    end
-    return UI.Panel {
-        position = "absolute",
-        left = 0, top = 0,
-        width = "100%", height = "100%",
-        backgroundImage = img,
-        backgroundFit = "contain",
-        pointerEvents = "none",
-    }
 end
 
 --- 常驻循环动画（引擎原生 loop + alternate；不要改用 onComplete 链）
@@ -138,150 +99,31 @@ local function scholarTick(dt)
     if not r or r.gen ~= scholarGen_ then return end
     dt = tonumber(dt) or 0
 
-    -- 眨眼：睁/闭两套眼睛贴图互斥切换（离散状态，不走关键帧）
-    if r.eyesOpen and r.eyesShut then
-        if scholarBlinkLeft_ > 0 then
-            scholarBlinkLeft_ = scholarBlinkLeft_ - dt
-            if scholarBlinkLeft_ <= 0 then
-                r.eyesOpen.opacity = 1
-                r.eyesShut.opacity = 0
-                local lo = cfgNum("blink_min", 2.2)
-                local hi = cfgNum("blink_max", 4.5)
-                scholarBlinkIn_ = lo + math.random() * math.max(0, hi - lo)
-            end
-        else
-            scholarBlinkIn_ = scholarBlinkIn_ - dt
-            if scholarBlinkIn_ <= 0 then
-                r.eyesOpen.opacity = 0
-                r.eyesShut.opacity = 1
-                scholarBlinkLeft_ = cfgNum("blink_hold", 0.12)
-            end
-        end
-    end
-
     if not r.kudos then return end
 
-    -- 翻页：（骨骼模式先抬手）→ 书页翻动 → 知识++（翻过一半时冒出）
+    -- 翻页（image 模式）：书页贴片绕书脊翻动 → 知识++（sprite 模式不走这里，
+    -- 其翻页/知识++ 由图集帧与 onFrameChange 驱动）
     scholarFlipIn_ = scholarFlipIn_ - dt
     if scholarFlipIn_ > 0 then return end
     scholarFlipIn_ = cfgNum("flip_interval", 5)
 
-    -- ① 骨骼模式：前臂绕肘抬起，等书页翻过去再落回（保持段略微回弹，避免僵直）
-    if r.foreBone then
-        local lift = cfgNum("arm_lift", 40)
-        W.anim(r.foreBone, {
+    -- 书页翻动（opacity=0 起始/收尾，避免翻完残留一页）；
+    -- 整图模式页片是盖在书上的白色贴片，绕书脊（页片左下角）翻动
+    if r.page then
+        local flip, dur = cfgNum("image_page.rotate", -118), 0.85
+        W.anim(r.page, {
             keyframes = {
-                [0]    = { rotate = 0 },
-                [0.22] = { rotate = lift },
-                [0.78] = { rotate = lift * 0.92 },
-                [1]    = { rotate = 0 },
+                [0]    = { opacity = 0, rotate = 0 },
+                [0.18] = { opacity = 0.95, rotate = -10 },
+                [0.72] = { opacity = 0.95, rotate = flip + 14 },
+                [1]    = { opacity = 0, rotate = flip },
             },
-            duration = 1.15,
+            duration = dur,
             easing = "easeInOut",
         })
     end
-    -- ② 书页翻动（opacity=0 起始/收尾，避免翻完残留一页）；
-    --    整图模式页片是盖在书上的白色贴片，绕书脊（页片左下角）翻动
-    if r.page then
-        local flip, dur
-        if r.foreBone then
-            flip, dur = cfgNum("flip_degrees", -168), 1.0
-            W.anim(r.page, {
-                keyframes = {
-                    [0]    = { opacity = 0, rotate = 0 },
-                    [0.20] = { opacity = 1, rotate = -12 },
-                    [0.80] = { opacity = 1, rotate = flip + 18 },
-                    [1]    = { opacity = 0, rotate = flip },
-                },
-                duration = dur,
-                easing = "easeInOut",
-            })
-        else
-            flip, dur = cfgNum("image_page.rotate", -118), 0.85
-            W.anim(r.page, {
-                keyframes = {
-                    [0]    = { opacity = 0, rotate = 0 },
-                    [0.18] = { opacity = 0.95, rotate = -10 },
-                    [0.72] = { opacity = 0.95, rotate = flip + 14 },
-                    [1]    = { opacity = 0, rotate = flip },
-                },
-                duration = dur,
-                easing = "easeInOut",
-            })
-        end
-    end
-    -- ③ 知识++：前段静止等待，书页翻过一半后冒出、上飘淡出
+    -- 知识++：前段静止等待，书页翻过一半后冒出、上飘淡出
     playKudos(r.kudos)
-end
-
---- 骨骼装配（默认）
-local function buildScholarRig()
-    local size = cfgNum("size", 320)
-    scholarGen_ = scholarGen_ + 1
-    scholarFlipIn_ = cfgNum("flip_interval", 5)
-    scholarBlinkLeft_ = 0
-    scholarBlinkIn_ = cfgNum("blink_min", 2.2)
-
-    -- 头：两套眼睛互斥（闭眼初始隐藏）
-    local eyesOpen = part("eyes_open")
-    local eyesShut = part("eyes_shut")
-    eyesShut.opacity = 0
-    local headBone = bone("neck", 0.4648, 0.3711, { part("head"), eyesOpen, eyesShut })
-
-    -- 书：书页是全画幅贴图，故骨绕「书脊」的比例坐标旋转
-    local page = part("page")
-    page.opacity = 0
-    local pageBone = bone("spine", 0.4844, 0.543, { page })
-
-    -- 近侧手臂：前臂绕肘抬起翻页
-    local foreBone = bone("elbow", 0.6289, 0.5312, { part("arm_fore") })
-
-    local kudos = buildKudos()
-
-    -- 上半身：呼吸时整体绕髋微转，头/书/手臂作为子节点一起跟随
-    local rootBone = bone("hip", 0.4531, 0.6484, {
-        part("torso"),
-        part("book"), pageBone,
-        part("arm_upper"), foreBone,
-        headBone,
-    })
-    -- 呼吸起伏单独一层：同一 widget 只有一个动画槽，rotate 已占用 rootBone
-    local liftBone = UI.Panel {
-        position = "absolute",
-        left = 0, top = 0,
-        width = "100%", height = "100%",
-        pointerEvents = "none",
-        children = { rootBone },
-    }
-
-    local box = UI.Panel {
-        width = size, height = size,
-        position = "relative",
-        pointerEvents = "none",
-        children = { part("chair"), part("arm_far"), part("legs"), liftBone, kudos },
-    }
-
-    scholarRefs_ = { gen = scholarGen_, page = page, foreBone = foreBone,
-                     kudos = kudos, eyesOpen = eyesOpen, eyesShut = eyesShut }
-    if not scholarHooked_ then
-        scholarHooked_ = true
-        Ticker.add(scholarTick)
-    end
-
-    local bp = cfgNum("breathe_period", 3.4)
-    loopAnim(liftBone, "translateY", -cfgNum("breathe_lift", 4), bp)
-    loopAnim(rootBone, "rotate", cfgNum("breathe_degrees", 1.1), bp)
-    loopAnim(headBone, "rotate", cfgNum("nod_degrees", 2.4), cfgNum("nod_period", 2.8))
-
-    -- 外层满宽容器把定宽画框居中（父级是列容器，定宽子项不会自动居中）
-    return UI.Panel {
-        width = "100%",
-        height = size + 20,
-        alignItems = "center",
-        justifyContent = "center",
-        pointerEvents = "none",
-        children = { box },
-    }
 end
 
 --- 整图模式（默认，config: ui.scholar.mode = "image"）：
@@ -290,7 +132,6 @@ local function buildScholarImage()
     local size = cfgNum("size", 320)
     scholarGen_ = scholarGen_ + 1
     scholarFlipIn_ = cfgNum("flip_interval", 5)
-    scholarBlinkLeft_ = 0
 
     -- 翻页页片：盖在摊开的书上，绕书脊（页片左下角）翻动；opacity=0 起始
     local pc = Config.get("ui.scholar.image_page", nil) or {}
@@ -334,7 +175,7 @@ local function buildScholarImage()
         children = { swayBone },
     }
 
-    scholarRefs_ = { gen = scholarGen_, page = page, foreBone = nil, kudos = kudos }
+    scholarRefs_ = { gen = scholarGen_, page = page, kudos = kudos }
     if not scholarHooked_ then
         scholarHooked_ = true
         Ticker.add(scholarTick)
@@ -407,14 +248,10 @@ end
 
 --- 四宫格与底栏之间的书童区（用户指定位置）
 local function buildScholar()
-    local mode = Config.get("ui.scholar.mode", "image")
-    if mode == "sprite" then
+    if Config.get("ui.scholar.mode", "image") == "sprite" then
         return buildScholarSprite()
     end
-    if mode == "image" then
-        return buildScholarImage()
-    end
-    return buildScholarRig()
+    return buildScholarImage()
 end
 
 --- 四宫格入口卡（白卡 + 图标 + 主标题 + 状态行；副标题两行手动断行防横向裁断）

@@ -603,3 +603,14 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | S14-2 | bg_main.png 单张 1.4MB（贴图预算 ≤3MB 的最大占项） | 水彩渐变 RGB PNG 体积天然大，且已是 1024×1536 | 256 色 MEDIANCUT + Floyd-Steinberg 抖动量化：1394KB → **597KB**（-57%），并排对比图目视无差异（渐变无 Banding）；stb_image 解码 P 模式 PNG 无兼容问题（本地 validate res=0 佐证） | ✅ |
 | S14-3 | `luacheck scripts/` 9 条 warning（红线要求 0/0，此前阶段遗留） | 各阶段增量未回跑全量 luacheck | 全部修复：session 内层 cell 遮蔽改名 / items·challenge·compliance·run_tests·court·shop 未用变量删除 / **play.lua `alertModal` 在定义前被 openCourt 引用（运行时走到即 nil 调用报错）——定义前移到首次使用之前** | ✅（0 warnings / 0 errors） |
 | S14-4 | 游戏 icon（512×512，上架素材）缺失 | 无设计稿 | `assets/Textures/icon_game.png`：薄荷→翠玉渐变底 + scholar.png + 白字描边「成语小秀才」（NotoSansSC-Bold，119KB），PIL 产出的上架占位首版 | ✅ 首版（最终版建议 AI 重出） |
+
+### 15.0 项目整理：死代码与文档（2026-10-25）
+
+| 编号 | 问题 | 根因 | 解法 | 状态 |
+|---|---|---|---|---|
+| S15-1 | `home.lua buildScholarRig()` 骨骼分支死代码（~150 行：bone/part/jointOf 助手 + 眨眼状态 + rig 分发） | S12 已删部件资源、S10/S11 方案被否，分支不可达 | 整体删除，image 分支保留为回退；文件 590+ → ~500 行 | ✅（巡检/冒烟复跑全绿） |
+| S15-2 | `scripts/atlasprobe.lua`、`glyphtest.lua`、`_glyphchars.lua` 死探针 | 字形容量问题已由 P2 方案（单关≤80 字 + 进关预热）根治，探针不在任何工作流上；`tools/atlasprobe.sh`、`make_glyphlist.py` 同为孤儿 | 全部删除（含 .meta 与 tools/ 本地孤儿脚本） | ✅ |
+| S15-3 | `scripts/tools/` 下 5 个骨骼方案遗留脚本（draw_doll / extract_doll_parts / fit_doll_rig / prep_doll_parts / measure_figure） | S10/S11 方案被否、资产已删 | 删除；保留通用 `ascii_peek.py`（无 GUI 环境看图手段） | ✅ |
+| S15-4 | 字体子集需随 Lua 注释新增字符重建 | 字集采集扫「Lua + config 全部非 ASCII」，S13/S14 新注释含子集外汉字 | `build_verification_font.py --chars 12000` 重跑 + 覆盖 MiSans 两份；单字重 2.87→2.14MB（顺带减包） | ✅ |
+| S15-5 | `generate_resource_meta` 对 `scripts/tools/make_icons.py` 返回 skipped（不生成 .meta），对同目录 `scholar_spritesheet.py` 却正常 | 疑似生成器对部分路径的规则差异，原因未明 | 不阻塞（两次远端构建均成功打包）；若后续构建报缺 meta 再处理 | ⚠️ 观察中 |
+| S15-6 | 文档分散、素材无清单 | 多阶段累积 | 新建 `docs/美术素材清单.md`、`scripts/tools/README.md`（素材流水线）；重写 `docs/README.md`（索引 + 当前状态）；交付说明补 S13/S14 与待办 | ✅ |

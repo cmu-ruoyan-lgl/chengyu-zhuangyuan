@@ -1,4 +1,4 @@
--- 共享 UI 组件（中国风「漆底 + 宣纸 + 描金」）。
+-- 共享 UI 组件（清新薄荷绿系，S5-4 起替代初版漆底描金风）。
 -- 集中配色/字号/圆角/投影的读取口径，避免各页重复实现导致风格漂移。
 -- 所有数值读 config（ui.color / ui.font_size / ui.fx），禁止硬编码。
 -- 本模块属 UI 层：不读游戏状态，只做样式与布局。
@@ -94,7 +94,7 @@ function W.iconOrDot(key, size, dotColor)
     }
 end
 
---- 顶栏信息胶囊（漆底 + 描金边）
+--- 顶栏信息胶囊（白底 + 薄荷描边；可选图标）
 function W.chip(label, opts)
     opts = opts or {}
     local fontSize = opts.fontSize or Theme.font("topbar", 26) * 0.85
@@ -143,7 +143,7 @@ function W.chipText(chipWidget, text)
     chipWidget._label:SetStyle({ text = text })
 end
 
---- 道具胶囊按钮（描金渐变 + 投影）
+--- 道具胶囊按钮（暖金渐变 + 投影）
 function W.pillButton(text, onTap, opts)
     opts = opts or {}
     return UI.Button {
@@ -177,7 +177,7 @@ end
 -- 分页/卡片（S2 各系统页共用）
 ------------------------------------------------------------------------------
 
---- 分区卡片：宣纸底 + 标题条
+--- 分区卡片：暖白底 + 标题条
 function W.sectionCard(title, children, opts)
     opts = opts or {}
     local header = UI.Panel {

@@ -1,7 +1,7 @@
 -- play 页：状态条 + 进度条 + 矩阵 + 备选区 + 道具栏 + 通关特效 + 体力门（DEV §10.2）。
 -- 严格分层：本页只订阅 Session 事件渲染 + 调用 Game 逻辑层，不持有游戏状态。
 -- T11 反馈通道：音效（system/audio）+ 关键帧动效（ui/fx）；触觉按裁决 #20 视为不可用。
--- 视觉：中国风「漆底 + 宣纸 + 描金」，所有配色/字号/动效参数读 config，禁止硬编码。
+-- 视觉：清新薄荷绿系（S5-4 定稿），所有配色/字号/动效参数读 config，禁止硬编码。
 
 local UI = require("urhox-libs/UI")
 local Theme = require("ui.theme")
@@ -13,7 +13,7 @@ local FX = require("ui.fx")
 local W = require("ui.widgets")
 local Ticker = require("ui.ticker")
 
--- 样式/组件统一走 ui/widgets（与府邸页、图鉴页共享同一套漆底描金风格）
+-- 样式/组件统一走 ui/widgets（与府邸页、图鉴页共享同一套清新风格）
 local pct, c, withAlpha, shadow, pieceShadow, anim =
     W.pct, W.c, W.withAlpha, W.shadow, W.pieceShadow, W.anim
 local chip, pillButton = W.chip, W.pillButton
@@ -105,7 +105,7 @@ local function shakeCell(r, col)
     })
 end
 
---- 正确填字：弹性放大 + 描金闪一下
+--- 正确填字：弹性放大 + 暖金闪一下
 local function popCell(r, col)
     local ref = refs.cells[r] and refs.cells[r][col]
     if not ref then return end
