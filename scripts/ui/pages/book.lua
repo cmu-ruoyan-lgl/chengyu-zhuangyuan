@@ -16,7 +16,7 @@ local function fs(key, default)
     return Theme.font(key, default)
 end
 
---- 一条成语卡片：词 + 拼音 + 释义 + 出处
+--- 一条成语卡片：词 + 拼音 + 释义 + 出处（长文案手动断行，Label 不自动换行）
 local function entryCard(entry, opts)
     opts = opts or {}
     local kids = {
@@ -29,7 +29,7 @@ local function entryCard(entry, opts)
             flexShrink = 1,
         },
         UI.Label {
-            text = "释义：" .. ((entry.meaning and entry.meaning ~= "") and entry.meaning or "暂无"),
+            text = W.wrapLines("释义：" .. ((entry.meaning and entry.meaning ~= "") and entry.meaning or "暂无"), 22),
             fontSize = fs("caption", 24),
             fontColor = c("ink_dim"),
             width = "100%",
@@ -39,7 +39,7 @@ local function entryCard(entry, opts)
     }
     if entry.source and entry.source ~= "" then
         kids[#kids + 1] = UI.Label {
-            text = "出处：" .. entry.source,
+            text = W.wrapLines("出处：" .. entry.source, 22),
             fontSize = fs("caption", 24),
             fontColor = c("ink_dim"),
             width = "100%",

@@ -11,10 +11,18 @@ local Nav = require("ui.nav")
 
 local Home = {}
 
+local notice_ = ""
+
+--- 顶部状态条回显（操作失败不能静默——S7 挑战入口教训）
+function Home.notice(msg)
+    notice_ = tostring(msg or "")
+    Home.mount()
+end
+
 local c = W.c
 local shadow = W.shadow
 
---- 四宫格入口卡（白卡 + 主标题 + 状态行）
+--- 四宫格入口卡（白卡 + 主标题 + 状态行；副标题两行手动断行防横向裁断）
 local function entryCard(title, sub, onTap, opts)
     opts = opts or {}
     return UI.Panel {
@@ -43,7 +51,7 @@ local function entryCard(title, sub, onTap, opts)
                 flexShrink = 1,
             },
             UI.Label {
-                text = sub or "",
+                text = W.wrapLines(sub or "", 9),
                 fontSize = Theme.font("caption", 24),
                 fontColor = opts.subColor or c("ink_dim"),
                 textAlign = "center",
@@ -87,7 +95,7 @@ function Home.mount()
             UI.Panel {
                 marginTop = 22,
                 children = { W.chip(
-                    string.format("官职 · %s　已过关 %d", tostring(rank.name), rank.levelsPassed or 0),
+                    string.format("官职 · %s · 已过关 %d", tostring(rank.name), rank.levelsPassed or 0),
                     { bold = true }) },
             },
         },
@@ -137,7 +145,18 @@ function Home.mount()
         flexDirection = "column",
         alignItems = "center",
         paddingTop = 64,
-        children = { playBtn },
+        children = {
+            playBtn,
+            UI.Label {
+                text = notice_,
+                fontSize = Theme.font("caption", 24),
+                fontColor = c("seal_deep"),
+                textAlign = "center",
+                width = "100%",
+                marginTop = 16,
+                flexShrink = 1,
+            },
+        },
     }
 
     -- 四宫格：府邸 / 挑战 / 图鉴 / 商店
@@ -158,9 +177,17 @@ function Home.mount()
                         string.format("限时 %d 词 · 今日剩 %d 次",
                             ch.target or 0, ch.remaining or 0),
                         function()
-                            if (ch.remaining or 0) <= 0 then return end
-                            local s = Game.startChallenge()
-                            if s then Nav.reset("play", { session = s }) end
+                            if (ch.remaining or 0) <= 0 then
+                                Home.notice("今日挑战次数已用完，明天再来")
+                                return
+                            end
+                            local s, err = Game.startChallenge()
+                            if s then
+                                Nav.reset("play", { session = s })
+                            else
+                                print("[home] 挑战开启失败: " .. tostring(err))
+                                Home.notice("挑战开启失败：" .. tostring(err))
+                            end
                         end,
                         { titleColor = c("seal_deep") }),
                 },

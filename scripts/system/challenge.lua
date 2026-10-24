@@ -79,8 +79,9 @@ end
 
 function M.canStart(save, nowTs)
     if M.remainingPlays(save, nowTs) <= 0 then return false, "limit_reached" end
-    local idx = M.indexForDay(save, nowTs)
-    if not fs.exists(fs.data(M.fileFor(idx))) then return false, "pool_missing" end
+    -- 注意：不能用 fs.exists 预判包内资源——设备上包内 JSON 在 ResourceCache 里，
+    -- 不在沙箱文件系统，FileExists 恒 false（S7：主页挑战入口因此静默失效）。
+    -- 可读性以 loadLevelData 的实际读取为准。
     return true
 end
 

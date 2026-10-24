@@ -56,6 +56,7 @@ local function row(title, sub, btnText, onTap, opts)
                     fontColor = c("ink"),
                     fontWeight = "bold",
                     width = "100%",
+                    flexShrink = 1,
                 },
             },
         },
@@ -67,6 +68,7 @@ local function row(title, sub, btnText, onTap, opts)
             fontColor = opts.subColor or c("ink_dim"),
             width = "100%",
             marginTop = 4,
+            flexShrink = 1,
         })
     end
     if btn then kids[#kids + 1] = btn end

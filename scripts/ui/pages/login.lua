@@ -21,25 +21,7 @@ local function c(key, default)
     return W.c(key, default)
 end
 
---- 长文案手动断行：按字符数切成每行 ≤ perLine 字（Label 不会自动换行）
-local function wrapLines(text, perLine)
-    local lines, cur, n = {}, "", 0
-    for ch in tostring(text):gmatch("[%z\1-\127\194-\244][\128-\191]*") do
-        if ch == "\n" then
-            lines[#lines + 1] = cur
-            cur, n = "", 0
-        else
-            cur = cur .. ch
-            n = n + 1
-            if n >= perLine then
-                lines[#lines + 1] = cur
-                cur, n = "", 0
-            end
-        end
-    end
-    if cur ~= "" then lines[#lines + 1] = cur end
-    return table.concat(lines, "\n")
-end
+local wrapLines = W.wrapLines
 
 --- 多行大按钮（Panel 实现，两行文案不溢出；触控区 = 整张卡）
 local function bigButton(text, sub, onTap, opts)

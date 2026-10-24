@@ -515,3 +515,14 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | S6-4 | 阻断页「20:00**□**22:00」豆腐块 | 文案用了 en dash `–`（U+2013），字体子集只收了 em dash `—`（U+2014）；Lua 文案扫描只取 CJK，标点漏采 | 文案改「至」；字体子集 EXTRA_CHARS 补 `–`、`％`、`℃`、`×` 并重建双字重 | ✅（覆盖率门禁已验证 U+2013 在子集内） |
 | S6-5 | 阻断页**「返回」键点了没反应** | 该按钮只是重挂同一阻断页，视觉零变化，观感等同死按钮 | 改为「重新选择年龄段」：`Game.resetRealname()` 清除占位实名后回到年龄门（注释标明：接入真实实名 SDK 后必须删除此入口） | ✅ |
 | S6-6 | 阻断页/登录页在小高度视口 footer 被压缩告警 | footer 带 flexShrink=1 被压到 53px（内容 84px） | footer 改 flexShrink=0 保持自然高度，body 侧 flexShrink=1 吸收收缩 | ✅（巡检 0 告警） |
+
+### 7.0 全页面巡检修复（2026-10-24 中午，用户三张截图反馈）
+
+| 编号 | 问题 | 根因 | 解法 | 状态 |
+|---|---|---|---|---|
+| S7-1 | **每日挑战点了进不去**（无任何反馈） | `Challenge.canStart` 用 `fs.exists`（设备上是 `fileSystem:FileExists`，只查沙箱文件系统）预判**包内资源**——挑战卷在 ResourceCache 里，FileExists 恒 false → 静默返回 `pool_missing`；主页处理器对失败分支零反馈 | 删除 fs.exists 预判，可读性以 `loadLevelData` 实际读取为准（readText 走 cache:Exists 能识别包内资源）；主页失败时打印日志 + 状态条回显原因 | ✅（设备日志证实 canStart 是唯一拦截点；巡检 startChallenge 通过） |
+| S7-2 | 「童生□已过关」「□主页」豆腐块 | 全角空格 U+3000、‹ U+2039 不在字体子集；字体采集脚本只从 Lua 源扫 CJK，符号全漏 | 文案去特殊符号（‹ 主页 → 主页；全角空格 → ·）；字体采集改为**全量非 ASCII**（Lua + config.json），EXTRA_CHARS 补「」￥；覆盖门禁分级：源字体有却没收 = 硬失败，源字体没有（emoji）= 告警 | ✅（双字重 9782 字，门禁通过） |
+| S7-3 | 棋盘**非格子位置渲染成白块**，整个棋盘像 N×N 空格阵 | cellStyle 的非格子分支返回 cream 底 + panel_edge 描边 + 统一投影，与真空格子视觉无区分 | 非格子底色/描边 = 卡片同色、不加投影，完全隐形；refresh 同样跳过 | ✅ |
+| S7-4 | 主页四宫格副标题被**横向裁断**（「客·签到任务（有奖…」） | Label 不自动换行 + 卡片半屏宽度放不下 15 字 | W.wrapLines 共享化（widgets），四宫格副标题按 9 字断两行；login 改用共享实现 | ✅ |
+| S7-5 | 图鉴/结算卡的**释义与出处超宽被裁** | 同上，释义最长 40+ 字 | 图鉴卡按 22 字、结算释义卡按 20 字断行 | ✅ |
+| S7-6 | 商店行标题/副标题无 flexShrink，极端长文本会顶按钮 | 漏配 | 补 flexShrink=1 | ✅ |

@@ -56,7 +56,9 @@ local refs = {
 local function cellStyle(grid, r, cc, selected, flashWrong)
     local cell = grid:getCell(r, cc)
     if not cell then
-        return c("cream"), c("panel_edge"), c("ink")
+        -- 非格子位置（成语字以外的空白）必须完全隐形：底色/描边都与卡片同色，
+        -- 且不加投影（S7：此前渲染成白块，整个棋盘像 N×N 个空格，误导点击）
+        return c("panel"), c("panel"), c("ink")
     end
     if flashWrong then
         return c("cell_error"), c("seal"), c("cream")
@@ -153,7 +155,7 @@ local function buildTopBar(session)
         justifyContent = "space-between",
         paddingHorizontal = 24,
         children = {
-            chip("‹ 主页", {
+            chip("主页", {
                 bg = withAlpha(c("chip_bg"), 235),
                 border = c("chip_edge"), fg = c("ink"), bold = true,
                 onClick = function() Play.goHome() end,
@@ -237,6 +239,7 @@ local function buildBoard(session)
         local cellPanels = {}
         for cIdx = 0, cols - 1 do
             local bg, border, fg = cellStyle(grid, r, cIdx, false, false)
+            local isReal = grid:getCell(r, cIdx) ~= nil
             -- Label 不要写 width/height="100%"：百分比高度会撑满父容器可用高度导致溢出。
             -- 居中交给父 Panel 的 justifyContent/alignItems，格子用 aspectRatio=1 保证正方形。
             local label = UI.Label {
@@ -257,7 +260,7 @@ local function buildBoard(session)
                 borderWidth = 2,
                 borderColor = border,
                 borderRadius = radius,
-                boxShadow = pieceShadow(),
+                boxShadow = isReal and pieceShadow() or nil,
                 justifyContent = "center",
                 alignItems = "center",
                 onClick = function() Play.onCellTapped(r, cIdx) end,
@@ -659,9 +662,9 @@ local function fillClearCards(cards)
         if card.pinyin and card.pinyin ~= "" then
             lines[#lines + 1] = card.pinyin
         end
-        lines[#lines + 1] = "释义：" .. (card.meaning ~= "" and card.meaning or "暂无")
+        lines[#lines + 1] = W.wrapLines("释义：" .. (card.meaning ~= "" and card.meaning or "暂无"), 20)
         if card.source and card.source ~= "" then
-            lines[#lines + 1] = "出处：" .. card.source
+            lines[#lines + 1] = W.wrapLines("出处：" .. card.source, 20)
         end
         local kids = {}
         for i, line in ipairs(lines) do
@@ -778,14 +781,19 @@ function Play.refresh()
             for cc = 0, cols - 1 do
                 local ref = refs.cells[r] and refs.cells[r][cc]
                 if ref then
+                    local isReal = grid:getCell(r, cc) ~= nil
                     local isSel = selected ~= nil and selected.r == r and selected.c == cc
                     local bg, border, fg = cellStyle(grid, r, cc, isSel, false)
-                    ref.label:SetStyle({ text = cellText(grid, r, cc), fontColor = fg })
-                    ref.panel:SetStyle({
+                    local style = {
                         backgroundColor = bg,
                         borderColor = border,
-                        boxShadow = isSel and shadow(18, 4, 150, "gold") or pieceShadow(),
-                    })
+                    }
+                    -- 非格子位置永不加投影（建造时就没有，这里也不补）
+                    if isReal then
+                        style.boxShadow = isSel and shadow(18, 4, 150, "gold") or pieceShadow()
+                    end
+                    ref.label:SetStyle({ text = cellText(grid, r, cc), fontColor = fg })
+                    ref.panel:SetStyle(style)
                 end
             end
         end
