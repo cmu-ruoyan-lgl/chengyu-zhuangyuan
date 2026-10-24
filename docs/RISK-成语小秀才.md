@@ -574,3 +574,13 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | S11-6 | 同一 widget 只能挂一个动画，呼吸的「起伏」与「躯干旋转」会互相顶掉 | 引擎 `animation_` 单槽 | 拆成两层骨：`liftBone`(translateY) → `rootBone`(绕髋 rotate) | ✅ |
 | S11-7 | 眨眼无法用关键帧表达（无 scaleY） | 引擎可插值属性白名单限制 | 预绘两套眼睛贴图（睁/闭），由 ticker 定时**互斥切换 opacity**（离散状态，1.2s–4.5s 随机间隔，闭 0.12s） | ✅ |
 | S11-8 | 部件外描边用逐形状 outline 会出现内部杂线 | 逐形状描边互相穿插 | 先画纯色填充层 → 由 alpha 8 邻域膨胀取环生成**统一外描边**（`_dilate`），内部细节才单独带描边 | ✅ |
+
+### 12.0 书童回归整图 scholar.png（2026-10-24 傍晚，用户「这个也太丑了，还是用 scholar.png」）
+
+| 编号 | 问题 | 根因 | 解法 | 状态 |
+|---|---|---|---|---|
+| S12-1 | 骨骼方案连续两版被否决：S10（AI 图拟合）姿态诡异、S11（程序化绘制）「太丑」 | 程序化绘制的扁平几何色块没有插画质感；且部件化后关节处必然有接缝 | 默认切回**整图模式** `ui.scholar.mode = "image"`：单张 scholar.png + 呼吸起伏 + 坐姿轻摇 + 翻页页片 + 知识++。rig 分支代码保留但默认不走，部件资源已移除（184K） | ✅ |
+| S12-2 | 整图分支的定宽画框在列容器里左对齐（`buildScholarImage` 直接返回 body，缺外层居中容器） | 定宽子项不会自动居中（rig 分支有外层容器，image 分支漏了） | 补满宽容器 `alignItems/justifyContent = center` | ✅ |
+| S12-3 | 整图模式下翻页完全不触发 | `scholarTick` 翻页段硬依赖 `r.foreBone`（骨骼专用）→ 整图模式直接 return | 翻页编排改为**按引用存在性分派**：抬手（仅骨骼）/ 书页（两种角度参数）/ 知识++（通用） | ✅（740 帧冒烟：0s 挂载 2 个常驻循环，~6s/12s 各 +2 翻页动效） |
+| S12-4 | 整图模式原先只有呼吸 + 知识++，没有翻页视觉 | — | 新增翻页页片：白色贴片盖在摊开的书上（left 66%/top 50.5%，15.5%×19.5%），`transformOrigin={0.08,0.95}` 绕书脊逆时针 -118° 翻动；另加绕椅底 ±0.8° 的坐姿轻摇 | ✅ |
+| S12-5 | 骨骼配置与资源残留 | — | config 移除 parts/joints/flip_degrees/arm_lift/blink_*；`assets/Textures/doll/` 整体删除 | ✅（验证 54 单测/300 关/巡检 11 站 0 告警） |
