@@ -423,10 +423,87 @@
       "spark_duration": 0.6
     },
     "scholar": {
-      "size": 300,
+      "mode": "rig",
+      "size": 320,
       "bob_amplitude": 6,
       "bob_period": 3.2,
-      "flip_interval": 5
+      "breathe_degrees": 1.2,
+      "nod_degrees": 2.6,
+      "nod_period": 2.6,
+      "flip_interval": 5,
+      "arm_swing": 7,
+      "parts": {
+        "chair": {
+          "x": 0.2808,
+          "y": 0.7747,
+          "w": 0.415,
+          "h": 0.2474,
+          "img": "Textures/doll/scholar_chair.png"
+        },
+        "arm_far": {
+          "x": 0.1827,
+          "y": 0.5044,
+          "w": 0.2283,
+          "h": 0.2137,
+          "img": "Textures/doll/scholar_arm_far.png"
+        },
+        "torso": {
+          "x": 0.2434,
+          "y": 0.3215,
+          "w": 0.4077,
+          "h": 0.5017,
+          "img": "Textures/doll/scholar_torso.png"
+        },
+        "book": {
+          "x": 0.4902,
+          "y": 0.5576,
+          "w": 0.3125,
+          "h": 0.2286,
+          "img": "Textures/doll/scholar_book.png"
+        },
+        "arm_near": {
+          "x": 0.5635,
+          "y": 0.468,
+          "w": 0.217,
+          "h": 0.264,
+          "img": "Textures/doll/scholar_arm_near.png"
+        },
+        "head": {
+          "x": 0.2115,
+          "y": 0.0009,
+          "w": 0.5106,
+          "h": 0.4864,
+          "img": "Textures/doll/scholar_head.png"
+        }
+      },
+      "joints": {
+        "torso": [
+          0.45,
+          0.8
+        ],
+        "head": [
+          0.47,
+          0.43
+        ],
+        "book": [
+          0.647,
+          0.672
+        ],
+        "arm_near": [
+          0.66,
+          0.48
+        ]
+      },
+      "page": {
+        "x": 0.647,
+        "y": 0.565,
+        "w": 0.156,
+        "h": 0.215
+      },
+      "kudos": {
+        "x": 0.6,
+        "y": 0.03
+      }
     }
   },
   "rank": {
