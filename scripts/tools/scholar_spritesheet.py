@@ -259,6 +259,8 @@ def main():
     ap.add_argument("--flip-interval", type=float, default=5,
                     help="循环总时长秒数 = config ui.scholar.flip_interval")
     ap.add_argument("--max-frames", type=int, default=20)
+    ap.add_argument("--colors", type=int, default=160,
+                    help="低熵量化色数（存盘前转回 RGBA 真彩，非调色板格式）")
     ap.add_argument("--out", default="assets/sprites/scholar")
     args = ap.parse_args()
 
@@ -399,17 +401,20 @@ def main():
               f" flip={len(flip_idx)}×{flip_ms}ms idle={idle_n}×{idle_ms}ms")
 
         # 装箱 + 写 sprite.json（TexturePacker Hash + sprite-gen animations）
+        # ⚠️ 只允许真彩色 RGBA：Web 播放器解码器不支持调色板(P-mode) PNG，
+        #    曾致资源加载卡死 51%（RISK S17-1）。
+        # 压缩策略：160 色量化后**转回 RGBA 真彩**再存（格式通用 + 低熵高压缩；
+        # 抖动关闭——抖动噪声反而变大）。仍超预算则报错提示减帧/缩帧。
         canvas, placements, side = pack_shelf(frames)
         outdir = Path(args.out)
         outdir.mkdir(parents=True, exist_ok=True)
         png_path = outdir / "spritesheet.png"
-        canvas.save(png_path, optimize=True)
+        canvas.quantize(colors=args.colors, method=Image.FASTOCTREE,
+                        dither=Image.Dither.NONE).convert("RGBA") \
+              .save(png_path, optimize=True)
         kb = png_path.stat().st_size / 1024
         if kb > 600:
-            # 平面卡通色数有限：量化降体积（RGBA→FASTOCTREE 保 alpha）
-            q = canvas.quantize(colors=160, method=Image.FASTOCTREE)
-            q.save(png_path, optimize=True)
-            kb = png_path.stat().st_size / 1024
+            sys.exit(f"RGBA 图集 {kb:.0f}KB 超 600KB：降低 --frame-max 或 --frames 重跑")
 
         fw, fh = frames[0].size
         fj = {"frames": {}, "animations": [{

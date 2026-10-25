@@ -622,3 +622,11 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | S16-1 | 游戏改名「成语小秀才」→「成语小状元」 | 用户指令 | 游戏内 5 处全替换（login/home/play 标题与兜底、glyphwarm CHROME_CHARS、.project/project.json title）；512 图标重出（旧图标渲染了旧名）；字体子集重建（状元二字本就在 rank 表内，7310 字数不变）；文档仅更新现状类（README/交付说明/上架文案），RISK/DEV/PRD 历史记录保留旧名不改写 | ✅（巡检/主入口 PASS） |
 | S16-2 | 上架三件套文案（简介/≤25字推荐语/开发者的话） | 用户指令 | `docs/上架文案.md`：简介 143 字；推荐语 18 字「边玩边学成语填字，从童生到状元」；开发者的话无联系方式/外链/兑换码且与简介不重合 | ✅ 待用户过目 |
 | S16-3 | 宣传 5 图 + 图标 10 候选；`generate_image` 仍 INSUFFICIENT_BALANCE（未执行未扣费） | 生成积分未充值 | 零积分 PIL 方案：`scripts/tools/make_promo.py` 产出 `docs/宣传素材/`（icon_cand_01–10 + promo_01–05 + 两张对照图）；所有渲染文本先过字体 cmap 校验防豆腐块；promo_02 首版第三条成语超宽被裁，改为两词大十字布局 | ✅ 首版（AI 版待充值同名替换） |
+
+### 17.0 Web 端资源加载卡死 51%（2026-10-25，用户截图反馈）
+
+| 编号 | 问题 | 根因 | 解法 | 状态 |
+|---|---|---|---|---|
+| S17-1 | Web 预览卡死「正在加载游戏资源 51%」（wasm 17.7MB 已下完，2 分钟无进展） | 包内两张**调色板格式（P-mode）PNG**（bg_main 256色量化版、书童图集 FASTOCTREE 量化版）——Web 播放器 PNG 解码器不支持 P-mode，资源解码卡死；本地 headless validate 不走真实解码路径，故一路全绿未拦住 | 全包禁止 P-mode：图集改「128 色量化后**转回 RGBA 真彩**再存」（16 帧 / 256px / 508KB，抖动关闭防噪声膨胀），bg_main 同法转 RGB（1167KB）；脚本写入硬性规则并加包内 P-mode 自查；config kudos_local_frame 13→9（16 帧布局变化） | ✅ 待用户刷新确认 |
+| S17-2 | 图集脚本第一版修复写成 `return main()` 递归重跑 | argparse 在递归调用里重新解析 argv，frame-max 每轮被重置回原值 → 死循环（日志里「降至 288 重烘」刷屏） | 删除递归，改为**退出并提示降参**（报错信息带建议参数）；教训：CLI 参数循环不要用重入 main 实现 | ✅ |
+| S17-3 | RGBA 原样保存图集 2602KB（超预算 4 倍） | BICUBIC 旋转给每帧全图引入重采样噪声，PNG 压不动 | 量化降熵后转回真彩：128 色 / 无抖动 → 24×320@1238KB → 16×256@**508KB** ✓（display 320 由 contain 放大，轻微变软可接受） | ✅ |
