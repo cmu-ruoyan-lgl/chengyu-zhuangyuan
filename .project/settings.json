@@ -17,11 +17,14 @@
   "build": {
     "generate_fs_path": true,
     "output_dir": "../dist",
-        "asset_dirs": [
-            "../assets",
-            "../scripts"
-        ],
-    "asset_ignores": []
+    "asset_dirs": [
+      "../assets",
+      "../scripts"
+    ],
+    "asset_ignores": [
+      "../assets/Textures/icon_game.png",
+      "../assets/Textures/icon_game.png.meta"
+    ]
   },
   "@runtime": {
     "multiplayer": {

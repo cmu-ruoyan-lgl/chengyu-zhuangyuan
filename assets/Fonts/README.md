@@ -1,26 +1,31 @@
 # assets/Fonts — 字体目录
 
-## 现状（2026-10-23 更新：授权问题已根治）
+## 现状（2026-11-14 更新：加载体积优化，见 RISK 19.0）
 
-| 文件 | 内容 | 许可 | 用途 |
-|---|---|---|---|
-| `NotoSansSC-Regular.ttf` | Noto Sans SC Regular，9357 字形子集（GB2312 全 6763 字 ∪ 题库 ∪ UI 文案） | **SIL OFL 1.1** | 项目主字体，可随包分发 |
-| `NotoSansSC-Bold.ttf` | Noto Sans SC Bold，同上字集 | **SIL OFL 1.1** | 真实粗体（可随包分发） |
-| `MiSans-Regular.ttf` | **上两个文件的副本** | 同上 | 引擎硬编码的全局兜底路径 |
-| `MiSans-Bold.ttf` | **上两个文件的副本** | 同上 | 引擎硬编码的全局兜底粗体路径 |
+| 文件 | 体积 | 用途 |
+|---|---|---|
+| `NotoSansSC-Regular.ttf` | 2.14 MB | **UI 实际渲染字体**（`theme="default-dark"` 把 `sans` 注册到此路径），7025 字形子集（GB2312 全 6763 字 ∪ 题库 ∪ UI 文案），SIL OFL 1.1 可随包分发 |
+| `NotoSansSC-Bold.ttf` | 2.14 MB | 同上字集的真实粗体（`sans-bold`） |
+| `MiSans-Regular.ttf` | **14 KB** | 引擎二进制硬编码加载路径的**极小占位**（ASCII + 常用标点 122 字形） |
+| `MiSans-Bold.ttf` | **14 KB** | 同上 |
 
-### 为什么还有 MiSans-* 这两个文件
+### 为什么 MiSans-* 可以只留 12KB
 
-引擎在启动时**硬编码**去加载 `Fonts/MiSans-Regular.ttf` 与 `Fonts/MiSans-Bold.ttf` 作为
-全局兜底字体（见 UrhoXRuntime 二进制中的字符串），且**没有暴露给 Lua 的配置接口**
-（只有 `nvgAddFallbackFont` 这种"按字体挂兜底"的 API，没有 `SetGlobalFallbackFonts`）。
+引擎启动时会硬编码加载 `Fonts/MiSans-Regular.ttf` / `MiSans-Bold.ttf` 作为全局
+fallback（UrhoXRuntime 二进制中的字符串），缺文件会刷 `Could not find resource`。
+但这两份历史上是 NotoSansSC 的**字节级副本**：字集与主字体完全一致，fallback
+永远不可能补出主字体没有的字。因此缩小它们是**零视觉损失**，却能省 4.28 MB 包体。
 
-缺这两个文件时，`validate` 会报 `Could not find resource Fonts/MiSans-Regular.ttf`，
-属于真实的 resource error，会污染验证信号。
+⚠️ 重跑 `tools/build_verification_font.py` 会把 NotoSansSC 复制回 MiSans（恢复成
+2 MB 副本），**必须紧接着执行**：
 
-**因此**：这两个文件只是为了满足引擎的加载路径，内容仍然是 OFL 的 Noto Sans SC。
-如果平台构建（TapTap Maker 远端构建）自带真正的 MiSans，直接删除这两个文件即可，
-没有任何代码依赖它们的文件名。
+```bash
+python3 scripts/tools/make_font_stub.py           # 重新生成占位
+python3 scripts/tools/make_font_stub.py --check   # 校验 ≤64KB
+```
+
+`scripts/system/glyphwarm.lua` 的 headless 兜底字体路径也已改指向
+`Fonts/NotoSansSC-Regular.ttf`（占位字体没有中文字形，不能用来预热）。
 
 ## 授权说明
 

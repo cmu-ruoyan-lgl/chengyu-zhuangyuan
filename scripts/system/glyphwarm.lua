@@ -14,7 +14,10 @@ local Config = require("core.config")
 
 local M = {}
 
-local FONT_PATH = "Fonts/MiSans-Regular.ttf"
+-- headless 兜底校验用的字体：必须是「UI 实际渲染的主字体」。
+-- MiSans-*.ttf 只是引擎二进制硬编码加载路径的极小占位（见 assets/Fonts/README.md），
+-- 用它预热中文字会全部落空，故此处指向 default-dark 主题注册的 sans 主字体。
+local FONT_PATH = "Fonts/NotoSansSC-Regular.ttf"
 
 -- UI 常用文案字（顶栏/工具栏/弹门/横幅等）。level 字由 warmupLevel 另算。
 -- 注意：新增 UI 文案后需同步此处；字体子集构建脚本会自动收集 Lua 里的中文字。

@@ -44,13 +44,19 @@ python3 scripts/tools/make_icons.py --only gold,home # 只重生成指定键
 
 ```bash
 python3 tools/build_verification_font.py --chars 12000
-cp assets/Fonts/NotoSansSC-Regular.ttf assets/Fonts/MiSans-Regular.ttf
-cp assets/Fonts/NotoSansSC-Bold.ttf    assets/Fonts/MiSans-Bold.ttf
+python3 scripts/tools/make_font_stub.py           # 重建占位（否则 MiSans 又变回 2MB 副本）
+python3 scripts/tools/make_font_stub.py --check
 ```
 
 字集 = GB2312 全 6763 ∪ 题库全字段 ∪ **Lua/config 全部非 ASCII**（只扫 CJK 会把
-‹ 　「」￥– 漏成豆腐块）。MiSans 两份是引擎硬编码兜底路径的副本，不可省。
+‹ 　「」￥– 漏成豆腐块）。
 门禁：源字体有却没收 = 硬失败；✅❌ 等 emoji 源字体没有 = 仅告警（引擎有 Emoji fallback）。
+
+**字体分工（S19 后）**：`theme="default-dark"` 把 `sans` / `sans-bold` 注册到
+`Fonts/NotoSansSC-*.ttf` —— 这两份是**必须完整打包的渲染字体**；
+`MiSans-*.ttf` 只是引擎二进制硬编码 fallback 的加载路径，用
+`make_font_stub.py` 生成 14KB 占位即可（省 4.28MB）。理由与回滚方法见
+`assets/Fonts/README.md`。
 
 ## 4. 其他常用
 

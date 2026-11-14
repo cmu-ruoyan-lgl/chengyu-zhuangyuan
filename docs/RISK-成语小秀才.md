@@ -637,3 +637,17 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 |---|---|---|---|---|
 | S18-1 | TapTap App 扫测试二维码始终「滴一下无反应」（从首次生成起） | 二维码拉起的小游戏源目录 `https://tapcode-sce.spark.xd.com/src/m_x7qf/` **404 NoSuchKey**——发布面板「更新测试版」从未上传成功（面板一直报「上传二维码失败」），测试通道无包可下，容器静默退出。`maker_build_current_directory` 只构建网页预览包，不发布测试通道（两者管线不同） | 必须由用户在 maker.taptap.cn 发布面板手动点「更新测试版」；上传成功后源目录有包、扫码即通。环境因素已逐一排除（国内版✓最新版✓内置扫一扫✓）；CLI/MCP 无对应命令可代点 | ⚠️ 待用户面板操作 |
 | S18-2 | 面板「上传二维码失败」的原因未知 | 疑似：官方服务抖动或面板前置条件（待用户重试并采集具体报错） | 用户点「更新测试版」重试；失败则截图报错文案；持续失败走官方反馈（可提供本表证据：源目录 404 + 面板失败截图） | ⚠️ 待采集 |
+
+### 19.0 Web 预览加载慢：包体瘦身（2026-11-14）
+
+| 编号 | 问题 | 根因 | 解法 | 状态 |
+|---|---|---|---|---|
+| S19-1 | 用户反馈 Web 预览「加载很慢」 | `.project/resources.json` 是 `preload_groups=["default"]` + `default=["**"]` → **全包启动前预下载**；当时打包资产约 11.7MB，其中字体 8.2MB 占 70% | 先做零风险瘦身（见下），包体降到 **6.92MB（-41%）** | ✅ |
+| S19-2 | **差点排错主字体**：初查 `UI.Init` 的 else 分支是 `createFont("sans","Fonts/MiSans-Regular.ttf")`，误判 MiSans 才是渲染字体、NotoSansSC 冗余 | 实际 `main.lua` 传了 `theme="default-dark"`，`urhox-libs/UI/Theme/DefaultDark.lua:19` 把 `sans`/`sans-bold` **显式注册到 `Fonts/NotoSansSC-*.ttf`**，走的是 `fonts` 分支而非 else | 结论反转：**NotoSansSC 两份必须完整保留**；MiSans 只是引擎二进制硬编码的全局 fallback 加载路径。查证顺序应为「先看 UI.Init 实参 → 再看主题 fonts 表」，不能只看默认分支 | ✅ |
+| S19-3 | 字体 8.2MB 中 4.28MB 是纯冗余 | `MiSans-Regular/Bold.ttf` 与 `NotoSansSC-Regular/Bold.ttf` **md5 完全相同**（字节级副本）；且字集相同 → fallback 永远补不出主字体没有的字 | 用 `scripts/tools/make_font_stub.py` 把两份 MiSans 生成 14KB 占位（ASCII + 常用中文标点，122 字形），**零视觉损失**省 4.28MB；文件仍需存在，否则引擎刷 `Could not find resource` | ✅（validate res=0，无资源告警） |
+| S19-4 | 占位字体没有中文字形，headless 字形预热会空转 | `scripts/system/glyphwarm.lua` 的兜底分支用 `nvgCreateFont(ctx,"warm",FONT_PATH)` 校验字体可读，原指向 MiSans-Regular | `FONT_PATH` 改指 `Fonts/NotoSansSC-Regular.ttf`（真机预热走 `sans`/`sans-bold`，本来就不受影响） | ✅ |
+| S19-5 | `bg_main.png` 单张 1167KB | S17 为修「P-mode PNG 解码卡死 51%」把 256 色 P-mode 转回 RGB，体积回涨 | 768×1152 + 128 色 MEDIANCUT 降熵后**转回 RGB 真彩**再存（禁 P-mode）：636KB（-45%），并排对比目视无色带/细节丢失；`backgroundFit=cover` 放大 1.5 倍对水彩渐变无感知 | ✅ |
+| S19-6 | 上架用 icon 随包下载 | `assets/Textures/icon_game.png`（119KB）运行时无任何引用 | `.project/settings.json` 的 `build.asset_ignores` 排除它（本地文件保留供上架使用） | ✅ |
+| S19-7 | 字体子集重建会把占位覆盖回 2MB 副本 | `tools/build_verification_font.py` 末尾 `cp NotoSansSC → MiSans` | 新增入库脚本 `scripts/tools/make_font_stub.py`（支持 `--check` 校验 ≤64KB），并同步更新 `assets/Fonts/README.md` 与 `scripts/tools/README.md` 的重建流程 | ✅ |
+| S19-8 | 启动阶段仍有 **324 个 JSON + 301 个 .meta** 在预载组里 | `.json` 是 render-blocking 启动前预载；`cache:Exists` 只查本地不触发下载，贸然改 preload 分组会让关卡读不到 | **本轮不动**（风险 > 收益）。后续可选方案：把 300 关合并成 10 个 pack JSON，用 asset_ignores 排除单文件，改 `session.lua`/`challenge.lua` 按 pack 索引读取；需同步改校验器与生成器 | ⚠️ 后续可选项，需用户确认 |
+| S19-9 | 引擎 wasm 17.7MB 由平台 CDN 下发 | 与项目代码无关（S11 已证：代码 0 远程 URL / 0 网络 API） | 弱网下仍可能慢；本轮优化只针对我们自己的包体 | ⚠️ 网络侧，非代码 |
