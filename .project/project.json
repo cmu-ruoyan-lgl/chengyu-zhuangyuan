@@ -5,7 +5,7 @@
     "id": "1532936202"
   },
   "entry": "main.lua",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "taptap_publish": {
     "title": "成语小状元",
     "description": "经典成语填字：从字库选字填入棋盘，凑齐全部成语即过关。体力/金币循环，150 关已就位。",
@@ -24,10 +24,10 @@
     "promotional_image": ""
   },
   "test_qrcode": {
-    "url": "https://tapcode-sce.spark.xd.com/qrcode/m_x7qf_1792904732423.png",
-    "generated_at": "2026-10-25T05:05:32.551Z"
+    "url": "https://tapcode-sce.spark.xd.com/qrcode/m_x7qf_1792918663713.png",
+    "generated_at": "2026-10-25T08:57:43.817Z"
   },
   "metadata": {
-    "updated_at": "2026-10-25T05:05:32.551Z"
+    "updated_at": "2026-10-25T08:57:43.817Z"
   }
 }
