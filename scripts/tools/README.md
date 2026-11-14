@@ -5,11 +5,16 @@
 
 ## 1. 书童序列帧图集（scholar_spritesheet.py）
 
-三种输入模式，产出 `assets/sprites/scholar/{spritesheet.png, sprite.json}` 并打印
+输入模式产出 `assets/sprites/scholar/{spritesheet.png, sprite.json}` 并打印
 SUMMARY JSON（`kudos_local_frame` 需回填 `config.json` 的 `ui.scholar.sprite.kudos_local_frame`）：
 
 ```bash
-# A. 零积分烘焙（当前线上版本的来源）：scholar.png + 翻页/呼吸/轻摇编排直接渲染帧
+# D. 完整循环帧目录（★ S21 起为线上版本来源）：96 帧白底抽帧 → 32 帧真翻页动画
+#    源帧副本 .tmp/scholar_video_frames/（不入 git），尾帧≈首帧，固定机位
+python3 scripts/tools/scholar_spritesheet.py --frames-dir .tmp/scholar_video_frames \
+    --even-frames 32 --kudos-source-frame 72 --frame-max 224 --colors 96 --flip-interval 5
+
+# A. 零积分烘焙（S13–S20 的旧来源，现仅作回退）：scholar.png + 翻页/呼吸/轻摇编排直接渲染帧
 python3 scripts/tools/scholar_spritesheet.py --from-base --frames 24 --frame-max 320 --flip-interval 5
 
 # B. AI 胶片图切分（充值后推荐）：ImageGen 出 4×3 网格连续动作图 → 逐格中心对齐
@@ -17,13 +22,19 @@ python3 scripts/tools/scholar_spritesheet.py --from-base --frames 24 --frame-max
 #    每格构图一致镜头固定；纯色浅薄荷绿背景；无文字无水印。
 python3 scripts/tools/scholar_spritesheet.py --strip <胶片图.png> --grid 4x3 --frame-max 320 --flip-interval 5
 
-# C. 视频抽帧（若视频生成恢复可用）：固定机位 → union bbox 共享裁窗对齐
+# C. 视频抽帧 / 普通帧目录（若视频生成恢复可用）：固定机位 → union bbox 共享裁窗对齐
 python3 scripts/tools/scholar_spritesheet.py --video <anim.mp4> --fps 12 --frame-max 320 --flip-interval 5
 ```
 
 通用步骤：边界漫灌抠底（**禁止全局亮度阈值**，会抠掉书页白色，见 RISK S10-6）→
 只留最大连通分量（顺带清水印碎片）→ 对齐 → 循环缝修剪 → 去重 → 翻页检测 →
 时长编排（总时长 = flip_interval）→ POT 装箱（>600KB 自动量化）。
+
+**D 模式的差异**（`--even-frames`）：AI 抽帧相邻帧差异极小，普通路径的
+`DEDUP_MSE` 会把帧几乎删光、翻页窗口变速还会扭曲匀速动作，因此 D 模式改为
+等步长抽稀 + 等时长 + 保留原正方形画布，并额外做 `edge_clean` 去白边。
+`--kudos-source-frame` 填源序列里「翻页完成」的帧号，脚本自动换算成本地帧号。
+产物必须是 **RGBA 真彩**（P-mode PNG 会卡死资源加载，见 RISK S17-1）。
 
 产出后：
 ```bash

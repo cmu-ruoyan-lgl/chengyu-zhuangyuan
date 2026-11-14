@@ -672,3 +672,16 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 8. **永久不支持的环境**：WorkBuddy 内置预览面板、微信内置浏览器、旧版 TapTap App 内嵌 WebView——一律改用独立系统浏览器或最新版 TapTap App。
 9. 若以上全过仍失败，则属平台 CDN / 播放器侧问题（参考 S11 的 wasm 下载失败），需带截图与 `chrome://gpu` 信息向 TapTap 制造官方反馈。
 
+### 21.0 书童换成真翻页序列帧（2026-11-15，用户提供 96 帧素材）
+
+| 项 | 内容 |
+|---|---|
+| 需求 | 用户找到 `~/Downloads/fa8bbad603aa45a992ac4de43ea32b5b/`（96 张 `video_000..095.png`），要求「替换主页书童翻页动画，其他保持不变」 |
+| 素材实测 | 640×640 RGBA 但 alpha 恒 255（不透明白底 252,252,251）；水彩风书童坐木椅，与 `scholar.png` 同一画风。96 帧是**完整循环**（尾帧 vs 首帧灰度 MSE=2.0e-5），翻页动作在源帧 32–72，帧间差分峰值 64/68/72；源帧 0/30/48/72 目视确认页片立起→落下 |
+| 处理 | `scholar_spritesheet.py` 新增 `--even-frames` 路径：边界漫灌抠底 → `edge_clean` 去白边（半透明边缘 RGB 用邻近前景色扩散，完全透明区 RGB 清零）→ 保留 640 正方形画布缩至 224px → 等步长抽稀 96→32 → 等时长 156ms/帧（总 5000ms）→ 96 色量化后**转回 RGBA 真彩** |
+| 为什么不用普通 `--frames-dir` 路径 | ① tight union bbox 会把角色放大，且角色贴上下边界（bbox y0=0 / y1=646 超出画布）② `DEDUP_MSE=0.0012` 对 AI 抽帧几乎删光全部帧（实测相邻最大差分仅 0.00067@128px 灰度）③「翻页窗口短时长」会把本来匀速的动作扭曲成忽快忽慢 |
+| 压缩取舍 | 32帧/256px/128色 = 932KB 超 600KB 预算；64色 = 469KB 但脸颊与书页明显斑驳；**选 32帧/224px/96色 = 582KB**，目视与 128 色版无差异且体积达标（旧图集 520KB，包体净增约 62KB）。224px 在设备真实视口仅放大约 1.13 倍 |
+| 改动范围 | `assets/sprites/scholar/{spritesheet.png, sprite.json}` 替换；`config.json` **仅** `kudos_local_frame` 9→24（源帧 72 映射）；`scripts/tools/scholar_spritesheet.py` 新增工具路径；文档 3 处。**home.lua / speed=1.6 / flip_interval=5 / 布局 / 其它页面零改动**；两个 `.meta` 的 uuid 与路径不变，无需重新生成 |
+| 验证 | 54 单测 / 300 关 0 error 0 warning / 11 站巡检 0 Layout Warning / validate `res=0` / 760 帧长冒烟：图集「32 帧 / 5000ms」加载 ✅，知识++ 4 次触发 @141/328/516/703，间隔 187 帧（期望 188 = 3.125s），0 Lua 错误；PNG mode=RGBA（非 P-mode），32 个帧区域全部非空 |
+| 残留风险 | 源帧副本在 `.tmp/scholar_video_frames/`（gitignore，**不入 git**）；目录被清理后需从用户 Downloads 原始目录重新拷贝。恢复旧烘焙图集：`git checkout HEAD~1 -- assets/sprites/scholar/` 并把 `kudos_local_frame` 改回 9 |
+

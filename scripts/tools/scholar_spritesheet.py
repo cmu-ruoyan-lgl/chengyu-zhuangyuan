@@ -7,6 +7,13 @@
       [--fps 12] [--frame-max 320] [--flip-interval 5] \
       [--out assets/sprites/scholar]
 
+  # C. 已对齐的完整循环帧目录（VideoGen 抽帧，尾帧≈首帧）：等步长抽稀 + 等时长
+  python3 scripts/tools/scholar_spritesheet.py --frames-dir .tmp/scholar_video_frames \
+      --even-frames 32 --kudos-source-frame 72 --frame-max 224 --colors 96 \
+      [--flip-interval 5] [--out assets/sprites/scholar]
+  #    源帧白底 → 边界漫灌抠底；保留原正方形画布（角色大小与旧图一致）；
+  #    --kudos-source-frame 是源序列里「翻页完成」的帧号，自动映射到本地帧。
+
   # B. 胶片图切分（AI 单图多姿态网格，逐格 bbox 中心对齐）
   python3 scripts/tools/scholar_spritesheet.py --strip .tmp/filmstrip.png --grid 4x3 \
       [--frame-max 320] [--flip-interval 5] [--out assets/sprites/scholar]
@@ -222,6 +229,64 @@ def bake_from_base(base_png, n, loop_s, frame_max, cfg):
     return frames, kudos_frame, flip_set
 
 
+def edge_clean(im):
+    """去白边：半透明边缘像素的 RGB 用邻近不透明像素扩散替换。
+
+    抠底后的透明区仍保留原白底 RGB，缩放插值会在角色轮廓外产生一圈
+    半透明白晕（薄荷绿主页背景上可见）。把完全透明区 RGB 清零还能降低
+    PNG 熵约 2%，对 600KB 包体预算有实际收益。
+    """
+    r = np.asarray(im).copy()
+    a = r[..., 3]
+    rgb = r[..., :3].astype(np.float32)
+    known = a >= 250
+    for _ in range(3):
+        kp = np.pad(known.astype(np.float32), ((1, 1), (1, 1)), mode="constant")
+        cp = np.pad(rgb, ((1, 1), (1, 1), (0, 0)), mode="constant")
+        w = kp[:-2, 1:-1] + kp[2:, 1:-1] + kp[1:-1, :-2] + kp[1:-1, 2:]
+        num = (cp[:-2, 1:-1] * kp[:-2, 1:-1, None]
+               + cp[2:, 1:-1] * kp[2:, 1:-1, None]
+               + cp[1:-1, :-2] * kp[1:-1, :-2, None]
+               + cp[1:-1, 2:] * kp[1:-1, 2:, None])
+        ext = (~known) & (w > 0)
+        rgb = np.where(ext[..., None], num / np.maximum(w, 1)[..., None], rgb)
+        known = known | ext
+    r[..., :3] = np.clip(rgb, 0, 255).astype(np.uint8)
+    r[a == 0, :3] = 0
+    return Image.fromarray(r)
+
+
+def even_loop(cut, total_frames, frame_max, total_ms, kudos_src):
+    """固定机位「完整循环」帧目录 → 等步长抽稀 + 等时长。
+
+    与视频自适应路径的区别：AI 抽帧动画相邻帧差异极小（DEDUP_MSE 会几乎
+    把帧删光），且动作本身已按真实时间匀速编排，再套「翻页窗口短时长」
+    会把匀速翻页扭曲成忽快忽慢。因此这条路径：
+      * 不做循环缝修剪（尾帧≈首帧，干脆不含尾帧，避免循环处多停一拍）
+      * 不做 tight 裁窗（保留原始正方形画布 → 角色大小/位置与旧图一致）
+      * 不做相邻去重、不做翻页变速；所有帧等时长，总时长 = flip_interval
+    返回 (frames, durations_ms, kudos_local_frame, 源帧索引)。
+    """
+    n_src = len(cut)
+    keep = [min(n_src - 1, round(i * n_src / total_frames))
+            for i in range(total_frames)]
+    frames = []
+    for k in keep:
+        im = Image.fromarray(cut[k])
+        if im.size != (frame_max, frame_max):
+            im = im.resize((frame_max, frame_max), Image.LANCZOS)
+        frames.append(edge_clean(im))
+    base = max(1, total_ms // total_frames)
+    durations = [base] * total_frames
+    durations[-1] += total_ms - base * total_frames
+    if kudos_src >= 0:
+        kudos = round(kudos_src * total_frames / n_src)
+    else:
+        kudos = round(total_frames * 0.75)  # 默认落在翻页完成处
+    kudos = min(total_frames - 1, max(0, kudos))
+    return frames, durations, kudos, keep
+
+
 def pack_shelf(frames):
     """简单 shelf 装箱到 POT 画布，返回 (canvas, placements)。"""
     side = 512
@@ -259,6 +324,10 @@ def main():
     ap.add_argument("--flip-interval", type=float, default=5,
                     help="循环总时长秒数 = config ui.scholar.flip_interval")
     ap.add_argument("--max-frames", type=int, default=20)
+    ap.add_argument("--even-frames", type=int, default=0,
+                    help="完整循环帧目录专用：等步长抽稀到 N 帧 + 等时长，跳过去重/翻页变速")
+    ap.add_argument("--kudos-source-frame", type=int, default=-1,
+                    help="even-frames 模式：源帧序列里翻页完成的帧号（0-based），自动映射到本地帧")
     ap.add_argument("--colors", type=int, default=160,
                     help="低熵量化色数（存盘前转回 RGBA 真彩，非调色板格式）")
     ap.add_argument("--out", default="assets/sprites/scholar")
@@ -268,6 +337,7 @@ def main():
     try:
         strip_mode = bool(args.strip)
         baked = None
+        durations_override = None   # even-frames 路径的等时长数组；None = 走标准变速编排
         if args.from_base:
             # 零积分烘焙：动效参数直接读 config.json（与运行时同源）
             conf = json.loads(Path("assets/data/config.json").read_text("utf-8"))
@@ -315,90 +385,111 @@ def main():
             cov = sum(float((r[..., 3] > 8).mean()) for r in cut) / len(cut)
             print(f"[sheet] 抠底完成 {len(cut)} 帧，平均前景覆盖率 {cov:.1%}")
 
-            if strip_mode:
-                # 胶片图：逐格 bbox，统一缩放后居中到同尺寸方画布（中心对齐）
-                boxes = [opaque_bbox(r, pad=2) for r in cut]
-                boxes = [b for b in boxes if b]
-                maxside = max(max(b[2] - b[0], b[3] - b[1]) for b in boxes)
-                scale = min(1.0, args.frame_max / maxside)
-                canvas_side = max(2, int(maxside * scale) // 2 * 2)
-                frames = []
-                for r, b in zip(cut, boxes):
-                    im = Image.fromarray(r).crop(b)
-                    im = im.resize((max(1, round(im.width * scale)),
-                                    max(1, round(im.height * scale))), Image.LANCZOS)
-                    cv = Image.new("RGBA", (canvas_side, canvas_side), (0, 0, 0, 0))
-                    cv.paste(im, ((canvas_side - im.width) // 2,
-                                  (canvas_side - im.height) // 2))
-                    frames.append(cv)
-                print(f"[sheet] 中心对齐画布 {canvas_side}px")
+            durations_override = None
+            if args.even_frames > 0:
+                # 固定机位完整循环：等步长抽稀 + 等时长，保留原始画布比例
+                if args.even_frames > len(cut):
+                    sys.exit(f"--even-frames {args.even_frames} 超过有效帧 {len(cut)}")
+                frames, durations_override, kudos_frame, src_keep = even_loop(
+                    cut, args.even_frames, args.frame_max,
+                    int(args.flip_interval * 1000), args.kudos_source_frame)
+                arr = [np.asarray(f) for f in frames]
+                n = len(frames)
+                flip_idx = set()
+                print(f"[sheet] 完整循环等步长抽稀 {len(cut)} → {n} 帧，"
+                      f"源帧索引 {src_keep[:4]}...{src_keep[-2:]}，"
+                      f"kudos_local_frame={kudos_frame}")
             else:
-                # 视频/帧目录：union bbox 共享裁窗（帧间硬对齐，动作不跳位）
-                boxes = [opaque_bbox(r) for r in cut]
-                boxes = [b for b in boxes if b]
-                x0 = min(b[0] for b in boxes); y0 = min(b[1] for b in boxes)
-                x1 = max(b[2] for b in boxes); y1 = max(b[3] for b in boxes)
-                win = (x0, y0, x1, y1)
-                scale = args.frame_max / max(win[2] - win[0], win[3] - win[1])
-                if scale > 1.0:
-                    scale = 1.0
-                frames = []
-                for r in cut:
-                    im = Image.fromarray(r).crop(win)
-                    if scale < 1.0:
+                if strip_mode:
+                    # 胶片图：逐格 bbox，统一缩放后居中到同尺寸方画布（中心对齐）
+                    boxes = [opaque_bbox(r, pad=2) for r in cut]
+                    boxes = [b for b in boxes if b]
+                    maxside = max(max(b[2] - b[0], b[3] - b[1]) for b in boxes)
+                    scale = min(1.0, args.frame_max / maxside)
+                    canvas_side = max(2, int(maxside * scale) // 2 * 2)
+                    frames = []
+                    for r, b in zip(cut, boxes):
+                        im = Image.fromarray(r).crop(b)
                         im = im.resize((max(1, round(im.width * scale)),
                                         max(1, round(im.height * scale))), Image.LANCZOS)
-                    frames.append(im)
-                print(f"[sheet] 裁窗 {win} → {frames[0].size}")
+                        cv = Image.new("RGBA", (canvas_side, canvas_side), (0, 0, 0, 0))
+                        cv.paste(im, ((canvas_side - im.width) // 2,
+                                      (canvas_side - im.height) // 2))
+                        frames.append(cv)
+                    print(f"[sheet] 中心对齐画布 {canvas_side}px")
+                else:
+                    # 视频/帧目录：union bbox 共享裁窗（帧间硬对齐，动作不跳位）
+                    boxes = [opaque_bbox(r) for r in cut]
+                    boxes = [b for b in boxes if b]
+                    x0 = min(b[0] for b in boxes); y0 = min(b[1] for b in boxes)
+                    x1 = max(b[2] for b in boxes); y1 = max(b[3] for b in boxes)
+                    win = (x0, y0, x1, y1)
+                    scale = args.frame_max / max(win[2] - win[0], win[3] - win[1])
+                    if scale > 1.0:
+                        scale = 1.0
+                    frames = []
+                    for r in cut:
+                        im = Image.fromarray(r).crop(win)
+                        if scale < 1.0:
+                            im = im.resize((max(1, round(im.width * scale)),
+                                            max(1, round(im.height * scale))), Image.LANCZOS)
+                        frames.append(im)
+                    print(f"[sheet] 裁窗 {win} → {frames[0].size}")
 
-            # 循环缝修剪：尾帧接近首帧才好无缝循环
-            arr = [np.asarray(f) for f in frames]
-            trim_cap = len(arr) // 4
-            trimmed = 0
-            while len(arr) > 8 and trimmed < trim_cap and mse(arr[-1], arr[0]) > SEAM_MSE:
-                arr.pop(); frames.pop(); trimmed += 1
-            print(f"[sheet] 循环缝修剪 {trimmed} 帧，缝 MSE={mse(arr[-1], arr[0]):.5f}")
+                # 循环缝修剪：尾帧接近首帧才好无缝循环
+                arr = [np.asarray(f) for f in frames]
+                trim_cap = len(arr) // 4
+                trimmed = 0
+                while len(arr) > 8 and trimmed < trim_cap and mse(arr[-1], arr[0]) > SEAM_MSE:
+                    arr.pop(); frames.pop(); trimmed += 1
+                print(f"[sheet] 循环缝修剪 {trimmed} 帧，缝 MSE={mse(arr[-1], arr[0]):.5f}")
 
-            # 相邻去重（保护呼吸微动：阈值很低）
-            keep = [0]
-            for i in range(1, len(arr)):
-                if mse(arr[i], arr[keep[-1]]) > DEDUP_MSE:
-                    keep.append(i)
-            # 帧数仍超上限：等步长抽稀（首尾帧必留）
-            if len(keep) > args.max_frames:
-                step = (len(keep) - 1) / (args.max_frames - 1)
-                keep = sorted({round(k * step) for k in range(args.max_frames)} |
-                              {keep[0], keep[-1]})
-            frames = [frames[i] for i in keep]
-            arr = [arr[i] for i in keep]
-            n = len(frames)
-            print(f"[sheet] 去重后 {n} 帧")
+                # 相邻去重（保护呼吸微动：阈值很低）
+                keep = [0]
+                for i in range(1, len(arr)):
+                    if mse(arr[i], arr[keep[-1]]) > DEDUP_MSE:
+                        keep.append(i)
+                # 帧数仍超上限：等步长抽稀（首尾帧必留）
+                if len(keep) > args.max_frames:
+                    step = (len(keep) - 1) / (args.max_frames - 1)
+                    keep = sorted({round(k * step) for k in range(args.max_frames)} |
+                                  {keep[0], keep[-1]})
+                frames = [frames[i] for i in keep]
+                arr = [arr[i] for i in keep]
+                n = len(frames)
+                print(f"[sheet] 去重后 {n} 帧")
 
-            # 帧间差分 → 翻页窗口
-            diffs = [mse(arr[i], arr[i - 1]) for i in range(1, n)]
-            rank = sorted(range(len(diffs)), key=lambda i: -diffs[i])
-            n_flip = max(2, min(4, n // 5))
-            flip_set = set(rank[:n_flip])
-            # 连续化：翻页帧应该是连续段，把窗口内空洞补上
-            lo = min(flip_set); hi = max(flip_set)
-            flip_idx = set(range(lo, hi + 1))
-            kudos_frame = min(hi + 1, n - 1)  # 翻页完成后的第一帧冒「知识++」
-            print(f"[sheet] 翻页窗口 帧{lo}..{hi}，kudos_local_frame={kudos_frame}")
+                # 帧间差分 → 翻页窗口
+                diffs = [mse(arr[i], arr[i - 1]) for i in range(1, n)]
+                rank = sorted(range(len(diffs)), key=lambda i: -diffs[i])
+                n_flip = max(2, min(4, n // 5))
+                flip_set = set(rank[:n_flip])
+                # 连续化：翻页帧应该是连续段，把窗口内空洞补上
+                lo = min(flip_set); hi = max(flip_set)
+                flip_idx = set(range(lo, hi + 1))
+                kudos_frame = min(hi + 1, n - 1)  # 翻页完成后的第一帧冒「知识++」
+                print(f"[sheet] 翻页窗口 帧{lo}..{hi}，kudos_local_frame={kudos_frame}")
             flip_interval = args.flip_interval
 
         # 时长编排：总时长 = flip_interval；翻页帧占约 1s（AI 帧用 FLIP_FRAME_MS），
-        # 其余 idle 帧均摊剩余时长
+        # 其余 idle 帧均摊剩余时长。完整循环路径直接用 even_loop 的等时长数组。
         total_ms = int(flip_interval * 1000)
-        if baked is not None:
-            flip_ms = max(1, 1000 // max(1, len(flip_idx)))
+        if durations_override is not None:
+            durations = durations_override
+            real_total = sum(durations)
+            print(f"[sheet] 等时长编排 总 {real_total}ms（目标 {total_ms}ms）"
+                  f" {n}×{durations[0]}ms，末帧 {durations[-1]}ms")
         else:
-            flip_ms = FLIP_FRAME_MS
-        idle_n = n - len(flip_idx)
-        idle_ms = max(60, (total_ms - len(flip_idx) * flip_ms) // max(1, idle_n))
-        durations = [flip_ms if i in flip_idx else idle_ms for i in range(n)]
-        real_total = sum(durations)
-        print(f"[sheet] 时长编排 总 {real_total}ms（目标 {total_ms}ms）"
-              f" flip={len(flip_idx)}×{flip_ms}ms idle={idle_n}×{idle_ms}ms")
+            if baked is not None:
+                flip_ms = max(1, 1000 // max(1, len(flip_idx)))
+            else:
+                flip_ms = FLIP_FRAME_MS
+            idle_n = n - len(flip_idx)
+            idle_ms = max(60, (total_ms - len(flip_idx) * flip_ms) // max(1, idle_n))
+            durations = [flip_ms if i in flip_idx else idle_ms for i in range(n)]
+            real_total = sum(durations)
+            print(f"[sheet] 时长编排 总 {real_total}ms（目标 {total_ms}ms）"
+                  f" flip={len(flip_idx)}×{flip_ms}ms idle={idle_n}×{idle_ms}ms")
 
         # 装箱 + 写 sprite.json（TexturePacker Hash + sprite-gen animations）
         # ⚠️ 只允许真彩色 RGBA：Web 播放器解码器不支持调色板(P-mode) PNG，
