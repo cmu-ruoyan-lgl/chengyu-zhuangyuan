@@ -424,6 +424,9 @@
     },
     "scholar": {
       "mode": "sprite",
+      "_doc_speed": "Playback multiplier: 1 = original, 1.6 = user-requested speed (flip cycle 5s -> 3.125s). Scales sprite SetSpeed and all image-fallback timings.",
+      "speed": 1.6,
+      "kudos_duration": 1.35,
       "sprite": {
         "_doc": "序列帧模式（mode=sprite）：atlas 循环播放，呼吸/翻页烘焙于动画帧；图集由 scripts/tools/scholar_spritesheet.py 产出",
         "src": "sprites/scholar/sprite.json",

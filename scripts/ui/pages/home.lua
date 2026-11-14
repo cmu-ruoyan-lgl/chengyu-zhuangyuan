@@ -28,8 +28,9 @@ local shadow = W.shadow
 ------------------------------------------------------------------------------
 -- 书童动画（S13：序列帧 sprite 模式为默认；S12 整图 image 模式为回退兜底）
 -- sprite：UI.Sprite 图集无限循环（呼吸/翻页烘焙于帧），速度按 flip_interval
---   归一，知识++ 由翻页帧 onFrameChange 驱动（与画面天然同步）。
--- image：单张 scholar.png + 呼吸起伏/坐姿轻摇 + 翻页页片 + 知识++。
+--   归一后乘 ui.scholar.speed（S20 起 =1.6），知识++ 由翻页帧 onFrameChange 驱动
+-- image：单张 scholar.png + 呼吸起伏/坐姿轻摇 + 翻页页片 + 知识++，
+--   所有周期与时长统一除以 ui.scholar.speed。
 -- 循环一律 loop + alternate（onComplete 链会被 BaseUpdate 完成分支的
 -- self.animation_ = nil 杀掉，见 RISK 9.0）。同一 widget 只有一个动画槽，
 -- 所以「起伏」与「轻摇」必须分挂两层。
@@ -46,6 +47,20 @@ local pct = W.pct
 
 local function cfgNum(key, default)
     return Config.num("ui.scholar." .. key, default)
+end
+
+--- 播放倍率（S20：用户指定 1.6 倍）。1 = 原速；所有周期/时长统一除以它，
+--- 序列帧的 SetSpeed 则乘以它，保证 sprite 与 image 两种模式视觉节奏一致。
+--- 防御非法值（0 / 负数 / 非数字）→ 退回 1，避免除零导致 ticker 永不触发。
+local function scholarSpeed()
+    local s = tonumber(cfgNum("speed", 1)) or 1
+    if s <= 0 then return 1 end
+    return s
+end
+
+--- 翻页周期（秒）：配置值 ÷ 倍率
+local function flipInterval()
+    return cfgNum("flip_interval", 5) / scholarSpeed()
 end
 
 --- 常驻循环动画（引擎原生 loop + alternate；不要改用 onComplete 链）
@@ -80,6 +95,7 @@ local function buildKudos()
 end
 
 --- 知识++ 飘字动效（整图/序列帧共用；关键帧参数已冒烟验证，勿改）
+--- 时长随 speed 缩短，避免倍率提高后飘字相对翻页显得拖沓
 local function playKudos(kudos)
     W.anim(kudos, {
         keyframes = {
@@ -89,7 +105,7 @@ local function playKudos(kudos)
             [0.84] = { opacity = 1, translateY = -24, scale = 1 },
             [1]    = { opacity = 0, translateY = -42, scale = 1 },
         },
-        duration = 1.35,
+        duration = cfgNum("kudos_duration", 1.35) / scholarSpeed(),
         easing = "easeOut",
     })
 end
@@ -105,12 +121,13 @@ local function scholarTick(dt)
     -- 其翻页/知识++ 由图集帧与 onFrameChange 驱动）
     scholarFlipIn_ = scholarFlipIn_ - dt
     if scholarFlipIn_ > 0 then return end
-    scholarFlipIn_ = cfgNum("flip_interval", 5)
+    scholarFlipIn_ = flipInterval()
 
     -- 书页翻动（opacity=0 起始/收尾，避免翻完残留一页）；
     -- 整图模式页片是盖在书上的白色贴片，绕书脊（页片左下角）翻动
     if r.page then
-        local flip, dur = cfgNum("image_page.rotate", -118), 0.85
+        local flip = cfgNum("image_page.rotate", -118)
+        local dur = 0.85 / scholarSpeed()
         W.anim(r.page, {
             keyframes = {
                 [0]    = { opacity = 0, rotate = 0 },
@@ -131,7 +148,7 @@ end
 local function buildScholarImage()
     local size = cfgNum("size", 320)
     scholarGen_ = scholarGen_ + 1
-    scholarFlipIn_ = cfgNum("flip_interval", 5)
+    scholarFlipIn_ = flipInterval()
 
     -- 翻页页片：盖在摊开的书上，绕书脊（页片左下角）翻动；opacity=0 起始
     local pc = Config.get("ui.scholar.image_page", nil) or {}
@@ -181,7 +198,7 @@ local function buildScholarImage()
         Ticker.add(scholarTick)
     end
 
-    local bp = cfgNum("breathe_period", 3.4)
+    local bp = cfgNum("breathe_period", 3.4) / scholarSpeed()
     loopAnim(liftBone, "translateY", -cfgNum("breathe_lift", 4), bp)
     loopAnim(swayBone, "rotate", cfgNum("sway_degrees", 0.8), bp * 1.3)
 
@@ -226,10 +243,13 @@ local function buildScholarSprite()
             end
         end,
     }
-    -- 循环周期归一：speed = 动画数据时长 / flip_interval（时长以 ms 烘焙进图集）
+    -- 循环周期归一：speed = (动画数据时长 / flip_interval) × 播放倍率
+    -- （时长以 ms 烘焙进图集，GetDuration 返回秒；S20 乘 ui.scholar.speed=1.6，
+    --   循环由 ~5s 缩到 ~3.13s，翻页/知识++ 同步加快）
     local dur = sprite:GetDuration(animName)
     if dur > 0 then
-        sprite:SetSpeed(dur / math.max(0.5, cfgNum("flip_interval", 5)))
+        local base = dur / math.max(0.5, cfgNum("flip_interval", 5))
+        sprite:SetSpeed(base * scholarSpeed())
     end
     -- 序列帧模式不注册翻页/眨眼引用：scholarTick 对 kudos=nil 直接让位，
     -- 知识++ 完全由 onFrameChange 驱动（与帧画面同步，不另起计时器）

@@ -651,3 +651,24 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | S19-7 | 字体子集重建会把占位覆盖回 2MB 副本 | `tools/build_verification_font.py` 末尾 `cp NotoSansSC → MiSans` | 新增入库脚本 `scripts/tools/make_font_stub.py`（支持 `--check` 校验 ≤64KB），并同步更新 `assets/Fonts/README.md` 与 `scripts/tools/README.md` 的重建流程 | ✅ |
 | S19-8 | 启动阶段仍有 **324 个 JSON + 301 个 .meta** 在预载组里 | `.json` 是 render-blocking 启动前预载；`cache:Exists` 只查本地不触发下载，贸然改 preload 分组会让关卡读不到 | **本轮不动**（风险 > 收益）。后续可选方案：把 300 关合并成 10 个 pack JSON，用 asset_ignores 排除单文件，改 `session.lua`/`challenge.lua` 按 pack 索引读取；需同步改校验器与生成器 | ⚠️ 后续可选项，需用户确认 |
 | S19-9 | 引擎 wasm 17.7MB 由平台 CDN 下发 | 与项目代码无关（S11 已证：代码 0 远程 URL / 0 网络 API） | 弱网下仍可能慢；本轮优化只针对我们自己的包体 | ⚠️ 网络侧，非代码 |
+
+### 20.0 书童动画提速 1.6 倍 + Web 预览「仅 Chrome 无痕可打开」（2026-11-15）
+
+| 编号 | 问题 | 根因 | 解法 | 状态 |
+|---|---|---|---|---|
+| S20-1 | 用户反馈主页书童翻书动画偏慢，要求改成现在的 1.6 倍 | 循环周期由 `ui.scholar.flip_interval=5` 归一（sprite 模式 `SetSpeed(dur/5)≈1.0`），知识++ 固定 1.35s，无统一倍率入口 | 新增 `ui.scholar.speed=1.6`、`ui.scholar.kudos_duration=1.35`；`home.lua` 增加 `scholarSpeed()` / `flipInterval()`：sprite 的 `SetSpeed` 乘倍率，image 回退的翻页间隔/呼吸/页片/飘字时长统一除倍率（含非法值防御退回 1）；`validate_scholar.lua` 的知识++ 识别时长与期望间隔改为按同一倍率计算（Config.load 在 Start 里，倍率必须延迟到 tick 读取） | ✅ 760 帧冒烟：图集 16 帧/4996ms，知识++ @104/291/479/666 帧，最近间隔 **187 帧（3.125s）**，原为 300 帧（5s），恰为 1.6 倍；`verify.sh` 全绿、54 单测、300 关、11 站 0 告警、luacheck 0/0 |
+| S20-2 | 用户反馈「加载很快了、画质无明显变化，但只有 Chrome 无痕窗口能打开，其它都打不开」；截图弹窗为「加载失败 / 该浏览器不支持游戏所需的运行环境 / 建议使用 Chrome、Edge 和 Safari 浏览器」 | **该弹窗来自平台 Web 播放器的运行环境预检，不是本仓库 Lua 代码**（项目 0 远程 URL / 0 浏览器 API）。预检主要校验 WebGL2 + SharedArrayBuffer（多线程 wasm 要求跨源隔离 COOP/COEP；响应头已确认 `cross-origin-opener-policy: same-origin` + `cross-origin-embedder-policy: require-corp`）。实测**全新普通模式** Chrome 157：`crossOriginIsolated=true`、`typeof SharedArrayBuffer="function"`、`webgl2=true`、`typeof WebAssembly="object"`、`serviceWorker.controller=null` → **Chrome 普通模式本身完全具备能力**，差异只可能来自该 profile 的旧构建缓存 / Service Worker / 扩展 / 登录态 | 代码侧无需改动。给用户的排查清单见下方「20.1」；结论：清站点数据 + 禁扩展 + 强刷 + 登录同一 Maker 账号 | ⚠️ 需用户侧操作 |
+| S20-3 | 其它浏览器（Safari / Edge / 内置预览面板）也打不开 | ① `?localDev=1` 是**开发者本地开发预览链接，绑定 Maker 登录态**：CDP 实测未登录时直接跳 `/intro?returnUrl=%2Fapp%2F...`，未登录的浏览器自然进不去；② 嵌入式 WebView（WorkBuddy 内置预览、微信 X5、旧版 TapTap App）普遍缺 WebGL2，属永久不支持；③ Safari 需在「开发 → 功能标志」确认 WebGL2 / SharedArrayBuffer，并关闭内容拦截器 | 需要「别人也能打开」必须走**公开试玩链接**：发布面板「更新测试版」上传成功后取公开链接 / 试玩白名单——与 S18-1 是同一个阻塞点（测试通道源目录 404） | ⚠️ 待用户面板操作（同 S18-1） |
+
+#### 20.1 普通窗口打不开时的排查顺序（用户侧，按序做完再试）
+
+1. **确认登录态**：在目标浏览器打开 `https://maker.taptap.cn`，用同一个 Maker 账号登录；若跳到 `/intro` 说明未登录，预览链接必然不可用。
+2. **清站点数据**：Chrome 地址栏 `chrome://settings/content/all` → 搜 `maker.taptap.cn`（以及 `tapcode-sce.spark.xd.com`）→ 删除显示的数据；再 `Cmd+Shift+Delete` 清「缓存的图片和文件」。原因：S19 重构了包体，普通窗口可能仍在用旧的缓存构建清单 / wasm / Service Worker（RISK 里「普通模式可能加载旧包」由来已久）。
+3. **注销 Service Worker**：F12 → Application → Service Workers → 对该站点 Unregister；或 DevTools → Network 勾 Disable cache 后刷新。
+4. **排除扩展**：`chrome://extensions` 全部停用（尤其广告/隐私拦截类）后重开；无痕模式默认不加载扩展，这正是「只有无痕能开」最常见的原因。也可用 `open -a "Google Chrome" --args --disable-extensions` 验证。
+5. **确认硬件加速**：`chrome://settings/system` → 打开「使用硬件加速」；`chrome://gpu` 里 WebGL2 应为 Hardware accelerated。自检：`https://get.webgl.org/webgl2/` 能看到旋转立方体；控制台 `crossOriginIsolated` 为 `true`、`typeof SharedArrayBuffer` 为 `"function"`。
+6. **强刷**：`Cmd+Shift+R`（Safari 为 `Option+Cmd+R`）；或给链接加任意新参数绕开文档缓存，例如 `...?localDev=1&v=20261115`（`localDev=1` 之外的参数不影响解析）。
+7. **Safari**：Safari ≥15 / macOS Monterey+；设置 → 高级 → 显示开发菜单 → 开发 → 功能标志，确认 WebGL 2.0、SharedArrayBuffer 开启；设置 → 网站 → 内容拦截器对该站点设为关闭。
+8. **永久不支持的环境**：WorkBuddy 内置预览面板、微信内置浏览器、旧版 TapTap App 内嵌 WebView——一律改用独立系统浏览器或最新版 TapTap App。
+9. 若以上全过仍失败，则属平台 CDN / 播放器侧问题（参考 S11 的 wasm 下载失败），需带截图与 `chrome://gpu` 信息向 TapTap 制造官方反馈。
+
