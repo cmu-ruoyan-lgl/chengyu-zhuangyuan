@@ -118,3 +118,7 @@ urhox-libs/
 /save.json.tmp
 /.tmp_test_save.json*
 /.tmp_smoke_save.json*
+
+# Maker 默认忽略规则（自动补充；平台内容不应提交）
+/.cache
+tools/
