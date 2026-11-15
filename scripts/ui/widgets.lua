@@ -76,37 +76,39 @@ end
 --- 图标贴片：assets/sprites/icons/icon_<key>.png 存在则显示贴图，
 --- 缺失时回退纯色圆点（图标资产不齐不破版，后续可无脑补 PNG）。
 function W.iconOrDot(key, size, dotColor)
-    size = size or 22
+    size = size or Theme.fit(22)
+    local gapRight = Theme.fit(10)
     local src = "sprites/icons/icon_" .. key .. ".png"
     if cache:Exists(src) then
         return UI.Panel {
             width = size, height = size,
             backgroundImage = src,
             backgroundFit = "contain",
-            marginRight = 10,
+            marginRight = gapRight,
         }
     end
     return UI.Panel {
         width = size, height = size,
         borderRadius = size / 2,
         backgroundColor = dotColor,
-        marginRight = 10,
+        marginRight = gapRight,
     }
 end
 
 --- 顶栏信息胶囊（白底 + 薄荷描边；可选图标）
 function W.chip(label, opts)
     opts = opts or {}
+    local fit = Theme.fit
     local fontSize = opts.fontSize or Theme.font("topbar", 26) * 0.85
     local dot = nil
     if opts.icon then
-        dot = W.iconOrDot(opts.icon, opts.iconSize or 22, opts.dotColor)
+        dot = W.iconOrDot(opts.icon, opts.iconSize or fit(22), opts.dotColor)
     elseif opts.dotColor then
         dot = UI.Panel {
-            width = 18, height = 18,
-            borderRadius = 9,
+            width = fit(18), height = fit(18),
+            borderRadius = fit(9),
             backgroundColor = opts.dotColor,
-            marginRight = 10,
+            marginRight = fit(10),
         }
     end
     local text = UI.Label {
@@ -122,10 +124,10 @@ function W.chip(label, opts)
     local self = UI.Panel {
         flexDirection = "row",
         alignItems = "center",
-        paddingHorizontal = 16,
-        paddingVertical = 4,
+        paddingHorizontal = fit(16),
+        paddingVertical = fit(4),
         flexShrink = 1,
-        borderRadius = 28,
+        borderRadius = fit(28),
         backgroundColor = opts.bg or W.c("chip_bg"),
         borderWidth = 2,
         borderColor = opts.border or W.c("chip_edge"),
@@ -150,10 +152,10 @@ function W.pillButton(text, onTap, opts)
         text = text,
         fontSize = opts.fontSize or Theme.font("toolbar", 28),
         flexGrow = opts.grow or 1,
-        marginHorizontal = opts.marginHorizontal or 7,
-        paddingVertical = opts.paddingVertical or 14,
+        marginHorizontal = opts.marginHorizontal or Theme.fit(8),
+        paddingVertical = opts.paddingVertical or Theme.fit(12),
         paddingHorizontal = opts.paddingHorizontal or 0,
-        borderRadius = 30,
+        borderRadius = Theme.fit(30),
         backgroundColor = opts.bg or W.c("gold_deep"),
         backgroundGradient = opts.gradient or {
             direction = "to-bottom",

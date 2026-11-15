@@ -802,3 +802,22 @@ CLI 授权状态（本轮）：`auth status` = 未配置，已发起设备码（
 —— 属**写操作**，须用户明确确认后单独执行，本轮未做。
 
 CLI 授权落地：`/Users/ruoyan/.taptap-cli/taptap.json`（Bearer，过期 Unix 1802536050），后续平台查询无需重复授权。
+
+### 27.0 真机 UI 重排：字号自适应 / 顶部安全区 / 状态栏分组（2026-11-16 00:37–01:00）
+
+用 §26.0 的 develop 自测码终于进到真机，用户反馈体验差：「首页游戏名居然还换行了」「下面的提示的字又太过于大了」
+「游戏主体中上面的 UI 排布也太拥挤了」，两张 864×1920 真机截图为证，并要求生成 Logo 候选。
+
+| 编号 | 结论 |
+|---|---|
+| S27-1 | **根因是缩放口径错配，不是个别字号写错**。`urhox-libs/UI/Core/UI.lua`：`UI.Scale.DEFAULT = DPR_DENSITY_ADAPTIVE`，返回 `dpr * sqrt(shortSide/720)`（clamp 0.625~1）；真机给的逻辑视口只有约 550~560 base px，而项目所有字号/固定数值都按 `ui.design_width=1080` 写 → 固定像素相对屏幕放大近 2 倍。标题「成语小状元」5 字超可用宽折成「成语小状」+「元」；副标题 16 字占满一行；5 个胶囊挤满顶栏且被右上角 TapTap 宿主胶囊压住 |
+| S27-2 | **不改用全局 `UI.Scale.DESIGN_RESOLUTION(1080,1920)`**：它会让所有固定数值（字号、字块边长 88、padding）物理尺寸降到约 52%，而百分比容器物理尺寸几乎不变 → 「格子没变、字块和字却小一半」的不协调；且 headless 横屏巡检视口会被拉成超宽逻辑视口，回归风险大。改为**只缩放字号与固定内边距，百分比容器不动** |
+| S27-3 | `ui/theme.lua` 新增：`viewportFontScale()`（按 `vw/design_width` 等比缩字号，`font_fit_min/max` 限幅；桌面/本地 ≥1080 恒为 1）、`font()` 接入该系数、`fontRaw()`（棋子/汉字**不随视口缩**，跟格子边长走，避免大格子小字）、`fit()`（chip/pillButton 的 padding、圆点、圆角同比例收缩）、`safeTop()`（系统安全区 + `sdk:GetNativeExitMenuRect()` 胶囊底边，算法与引擎 SafeAreaView 一致，pcall 兜底）、`titleFontSize()`（按可用宽 / 字数封顶，保证标题单行） |
+| S27-4 | `login.lua` 重排：标题单行自适应、副标题手动断行并降一级、按钮主标题缩短为「我已成年」把信息下沉到副标题、说明与页脚字号分层、整页加 `paddingTop=safeTop()`；`home.lua` 标题同样单行封顶 + 安全区下移 |
+| S27-5 | `play.lua`：顶栏由「5 胶囊 space-between 挤满一行」改为「导航簇（主页/关卡/挑战）+ 资源簇（体力/金币）」两簇、中间大留白；root 用 `paddingTop=safeTop()` 整体下移避开平台胶囊（**不新增占位 child**，否则 children 总高 >100% 会在矮视口告警）；字库每行上限 4 列，但**仅窄屏生效**；棋子/汉字改用 `fontRaw` |
+| S27-6 | **两次 Layout Warning 踩坑**（基线 0 → 本轮一度 12 条 → 归零）：① 顶栏改上下两行时，矮视口 pct 高度装不下两行 → 退回单行分组；② `bank_per_row_max=4` 全局生效时，宽屏巡检原本 1 行能放完的字库被撑成 2 行（children 192 > container 150）→ 加 `vw < design_width*0.7` 条件。定位手段：引擎 `Widget.lua:4432` 的 Layout Warning 会打印 `props.id`，可给容器挂 id 定位；本次最终用「逐文件回退到 HEAD」的对照实验锁定在 play.lua |
+| S27-7 | 验证：`bash tools/verify.sh` 全绿（54 单测 / 300 关 0 error 0 warning / validate `res=0`）；`validate_pages.lua` **Layout Warning 0**；`VALIDATE_FRAMES=760 validate_scholar.lua` 0 Lua 错误、0 Layout Warning、知识++ 正常；`luacheck scripts/` **0 warnings / 0 errors**（`sdk` 全局改走 `_G.sdk` 局部变量）；改了 UI 文案 → 重跑 `build_verification_font.py --chars 12000` + `make_font_stub.py`（NotoSansSC 2.0MB / MiSans 14KB） |
+| S27-8 | Logo：4 张 1024×1024 候选入库 `docs/宣传素材/logo_candidates/`（A 翡翠印章 / B 水彩书童 / C 金篆书名 / D 棋盘字块）。C 的「成语小状元」五字准确、D 的「成」「语」准确。平台右下角水印已去：A/B/D 用上方区域羽化填充，C 因有金色圆角边框改用**左下角水平镜像**（四角对称构图）补右下角，边框完整 |
+
+**残留**：真机效果需重新上传包体后复验（改动只在本地 + git，Spark 版本仍停在 16）。
+`safeTop()` 依赖真机 `sdk` 返回胶囊矩形；Web / headless 无 sdk 时退化为系统安全区，不影响门禁。

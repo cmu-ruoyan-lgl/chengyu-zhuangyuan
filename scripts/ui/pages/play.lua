@@ -133,8 +133,13 @@ end
 -- 构建：顶栏 / 进度条 / 棋盘 / 备选区 / 道具栏 / 横幅
 ------------------------------------------------------------------------------
 
+-- S27：真机上原先 5 个胶囊等距挤满一行、且右上角被 TapTap 宿主胶囊压住。
+-- 改为「左组（导航 / 关卡 / 挑战）+ 右组（体力 / 金币）」两簇，中间由 space-between
+-- 拉开大留白；整条状态栏再由 root 的顶部安全区占位下移，避开平台胶囊。
+-- 不用上下两行：矮视口（headless 横屏）下两行内容会撑破 pct 高度产生 Layout Warning。
 local function buildTopBar(session)
     local isChallenge = (Game.mode() == "challenge")
+    local fit = Theme.fit
     refs.levelChip = chip(isChallenge and "每日挑战"
         or (session and ("第 " .. tostring(session.levelId) .. " 关") or "成语小状元"), {
         bg = c("gold_deep"), border = c("gold_dark"), fg = c("ink"), bold = true,
@@ -146,22 +151,37 @@ local function buildTopBar(session)
     refs.challengeChip = chip("剩余 --", { dotColor = c("seal"), fg = c("text_light") })
     if not isChallenge then refs.challengeChip:SetVisible(false) end
 
-    return UI.Panel {
-        width = "100%",
-        height = pct(Theme.ratio("topbar", 0.08)),
-        flexShrink = 1,
+    local spacer = function()
+        return UI.Panel { width = fit(12), flexShrink = 0 }
+    end
+    local navGroup = UI.Panel {
         flexDirection = "row",
         alignItems = "center",
-        justifyContent = "space-between",
-        paddingHorizontal = 24,
+        flexShrink = 1,
         children = {
             chip("主页", {
                 bg = withAlpha(c("chip_bg"), 235),
                 border = c("chip_edge"), fg = c("ink"), bold = true,
                 onClick = function() Play.goHome() end,
             }),
-            refs.levelChip, refs.challengeChip, refs.topStamina, refs.topGold,
+            spacer(), refs.levelChip, spacer(), refs.challengeChip,
         },
+    }
+    local statGroup = UI.Panel {
+        flexDirection = "row",
+        alignItems = "center",
+        flexShrink = 1,
+        children = { refs.topStamina, spacer(), refs.topGold },
+    }
+    return UI.Panel {
+        width = "100%",
+        height = pct(Theme.ratio("topbar", 0.105)),
+        flexShrink = 1,
+        flexDirection = "row",
+        alignItems = "center",
+        justifyContent = "space-between",
+        paddingHorizontal = fit(28),
+        children = { navGroup, statGroup },
     }
 end
 
@@ -231,7 +251,8 @@ local function buildBoard(session)
     local cellSize = math.floor(math.min(
         (cardW - gap * (cols - 1)) / cols,
         (cardH - gap * (rows - 1)) / rows))
-    local fontSize = math.min(Theme.font("hanzi", 40), cellSize * 0.52)
+    -- 汉字与格子边长绑定，用 fontRaw：不随 UI 文案的视口字号系数缩小
+    local fontSize = math.min(Theme.fontRaw("hanzi", 40), cellSize * 0.52)
 
     local rowPanels = {}
     for r = 0, rows - 1 do
@@ -307,10 +328,17 @@ end
 local function buildBank(session)
     local gap = Theme.num("cell_gap", 8)
     local block = Theme.num("bank_block_min", 88)
-    local fontSize = Theme.font("hanzi", 40)
+    -- 汉字跟着字块边长走，不随视口字号系数缩小（否则真机上大块里一个很小的字）
+    local fontSize = math.min(Theme.fontRaw("hanzi", 40), block * 0.56)
     local vw = select(1, UI.GetViewportSize()) or 1080
     local usable = vw - 60
     local perRow = math.max(1, math.floor(usable / (block + gap)))
+    -- 窄屏（真机）算出的列数不稳定，固定成 2 行 × 4 列的稳定节奏，点击区也更宽松。
+    -- 宽屏（headless 横屏巡检）不能限列：本来 1 行能放完，限成 4 列会变 2~4 行
+    -- 撑破 bank 的 pct 高度，产生 Layout Warning（S27 实测）。
+    if vw < Config.num("ui.design_width", 1080) * 0.7 then
+        perRow = math.min(Theme.num("bank_per_row_max", 4), perRow)
+    end
 
     refs.bank = {}
     if not session then
@@ -431,7 +459,7 @@ local function buildToolBar(session)
         flexShrink = 1,
         flexDirection = "column",
         justifyContent = "center",
-        paddingHorizontal = 24,
+        paddingHorizontal = Theme.fit(28),
         children = {
             UI.Panel {
                 width = "100%",
@@ -1160,7 +1188,7 @@ function Play.mount(_, opts)
 
     if s and Config.get("glyph.warmup_on_level_start", true) then
         -- P2：进关预热本关字形，避免首次出现时的抖动
-        local ok, reason, n = Warm.warmupLevel(s.grid, s.bank, Theme.font("hanzi", 40))
+        local ok, reason, n = Warm.warmupLevel(s.grid, s.bank, Theme.fontRaw("hanzi", 40))
         print(string.format("[play] 字形预热 %s（%d 字）%s",
             ok and "成功" or "跳过", n or 0, ok and "" or ("原因: " .. tostring(reason))))
     end
@@ -1177,6 +1205,10 @@ function Play.mount(_, opts)
         backgroundColor = c("bg_top"),
         backgroundImage = "Textures/bg_main.png",
         backgroundFit = "cover",
+        -- S27：顶部安全区（系统状态栏 + TapTap 宿主胶囊）用 root 的 paddingTop 实现。
+        -- 不额外插入占位 child：那会让 children 总高超过 100%，Yoga 压缩分区后
+        -- 在矮视口产生 Layout Warning（实测 4 条）。padding 不新增兄弟节点，背景仍铺满全屏。
+        paddingTop = Theme.safeTop(),
         children = {
             buildTopBar(s),
             buildProgressBar(),

@@ -328,28 +328,32 @@ function Home.mount()
     local maxLevel = Game.maxLevel()
 
     -- 顶部：标题 + 官职胶囊
+    -- S27：标题字号按可用宽封顶保证单行；顶部同时避让系统安全区与 TapTap 胶囊
     local header = UI.Panel {
         width = "100%",
         flexDirection = "column",
         alignItems = "center",
-        paddingTop = 84,
+        paddingTop = math.max(Theme.fit(84), Theme.safeTop() + Theme.fit(24)),
         children = {
             UI.Label {
                 text = "成语小状元",
-                fontSize = Theme.font("title", 56) * 1.35,
+                fontSize = Theme.titleFontSize(5, 24, 1.2),
                 fontColor = c("jade_deep"),
                 fontWeight = "bold",
                 textAlign = "center",
+                width = "100%",
+                flexShrink = 0,
             },
             UI.Label {
                 text = "益智填词 · 出口成章",
-                fontSize = Theme.font("caption", 24),
+                fontSize = Theme.font("caption", 24) * 0.9,
                 fontColor = c("ink_dim"),
                 textAlign = "center",
-                marginTop = 14,
+                width = "100%",
+                marginTop = Theme.fit(14),
             },
             UI.Panel {
-                marginTop = 22,
+                marginTop = Theme.fit(22),
                 children = { W.chip(
                     string.format("官职 · %s · 已过关 %d", tostring(rank.name), rank.levelsPassed or 0),
                     { bold = true }) },

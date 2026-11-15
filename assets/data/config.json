@@ -164,11 +164,18 @@
       "symbol": 30
     },
     "big_text_scale": 1.2,
+    "font_auto_fit": true,
+    "_doc_font_fit": "S27：真机逻辑视口远小于 design_width（1080）时，固定字号会相对屏幕放大近一倍，导致标题折行、提示字过大。按 vw/design_width 等比缩放字号，[font_fit_min, font_fit_max] 限幅；桌面/本地 validate 视口≥1080 时恒为 1。",
+    "font_fit_min": 0.58,
+    "font_fit_max": 1.0,
+    "safe_top_extra": 18,
+    "bank_per_row_max": 4,
     "cell_gap": 8,
     "cell_radius": 12,
     "bank_block_min": 88,
     "clear_card_area_height": 300,
     "layout_ratio": {
+      "_doc": "S27：状态栏改为单行分组（导航簇 / 资源簇）+ 顶部安全区下移，比例维持 0.08；总和恒为 1.0。",
       "topbar": 0.08,
       "progress": 0.014,
       "board": 0.44,
