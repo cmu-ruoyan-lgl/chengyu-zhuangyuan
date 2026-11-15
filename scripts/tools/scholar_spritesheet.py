@@ -8,7 +8,7 @@
       [--out assets/sprites/scholar]
 
   # C. 已对齐的完整循环帧目录（VideoGen 抽帧，尾帧≈首帧）：等步长抽稀 + 等时长
-  python3 scripts/tools/scholar_spritesheet.py --frames-dir .tmp/scholar_video_frames \
+  python3 scripts/tools/scholar_spritesheet.py --frames-dir source_assets/scholar_frames \
       --even-frames 32 --kudos-source-frame 72 --frame-max 224 --colors 96 \
       [--flip-interval 5] [--out assets/sprites/scholar]
   #    源帧白底 → 边界漫灌抠底；保留原正方形画布（角色大小与旧图一致）；

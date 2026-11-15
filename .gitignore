@@ -108,9 +108,12 @@ urhox-libs/
 
 # 注意：tools/ 是平台资源入口（远端 pre-receive 钩子禁止跟踪），
 # 本地工具脚本（verify.sh 等）保留在磁盘但不入库。
-# Agent 会话与记忆目录（本地状态，不入库）
-.workbuddy/
+# WorkBuddy 会话产物（本地状态，不入库）；memory/ 是项目知识资产，纳入版本管理
+/.workbuddy/*
+!/.workbuddy/memory/
 .maker-mcp/
+__pycache__/
+*.pyc
 
 # S1 存档：tool_mode 下引擎 File 写在项目根（真机沙箱不受影响）
 /save.json
@@ -120,5 +123,8 @@ urhox-libs/
 /.tmp_smoke_save.json*
 
 # Maker 默认忽略规则（自动补充；平台内容不应提交）
+# ⚠️ 必须写成 /tools/（只匹配根目录）。裸 tools/ 会命中任意层级同名目录，
+#    连 scripts/tools/ 一起忽略 → 新建的离线工具脚本无法 git add（S21 已踩，见下）。
+#    若 Maker 再次自动追加裸 `tools/`，改回 `/tools/`。
 /.cache
-tools/
+/tools/

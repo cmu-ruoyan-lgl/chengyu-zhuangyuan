@@ -683,5 +683,17 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | 压缩取舍 | 32帧/256px/128色 = 932KB 超 600KB 预算；64色 = 469KB 但脸颊与书页明显斑驳；**选 32帧/224px/96色 = 582KB**，目视与 128 色版无差异且体积达标（旧图集 520KB，包体净增约 62KB）。224px 在设备真实视口仅放大约 1.13 倍 |
 | 改动范围 | `assets/sprites/scholar/{spritesheet.png, sprite.json}` 替换；`config.json` **仅** `kudos_local_frame` 9→24（源帧 72 映射）；`scripts/tools/scholar_spritesheet.py` 新增工具路径；文档 3 处。**home.lua / speed=1.6 / flip_interval=5 / 布局 / 其它页面零改动**；两个 `.meta` 的 uuid 与路径不变，无需重新生成 |
 | 验证 | 54 单测 / 300 关 0 error 0 warning / 11 站巡检 0 Layout Warning / validate `res=0` / 760 帧长冒烟：图集「32 帧 / 5000ms」加载 ✅，知识++ 4 次触发 @141/328/516/703，间隔 187 帧（期望 188 = 3.125s），0 Lua 错误；PNG mode=RGBA（非 P-mode），32 个帧区域全部非空 |
-| 残留风险 | 源帧副本在 `.tmp/scholar_video_frames/`（gitignore，**不入 git**）；目录被清理后需从用户 Downloads 原始目录重新拷贝。恢复旧烘焙图集：`git checkout HEAD~1 -- assets/sprites/scholar/` 并把 `kudos_local_frame` 改回 9 |
+| 残留风险 | ~~源帧在 `.tmp/` 不入 git~~ → **S22 已解决**：96 帧已迁入 `source_assets/scholar_frames/` 并纳入 git（该目录不进游戏包，见 `source_assets/README.md`）。恢复旧烘焙图集：`git checkout dd346bd~1 -- assets/sprites/scholar/` 并把 `kudos_local_frame` 改回 9 |
+
+### 22.0 仓库版本管理整理（2026-11-15 下午，用户「希望把这些文件放到 git 管理下」）
+
+| 项 | 内容 |
+|---|---|
+| 体检结论 | `main == origin/main`，848 个文件已跟踪（assets 705 / scripts 104 / docs 27 / .project 8 / 根 4），`.git` 45MB；被忽略的未跟踪文件 1213 个、约 328MB |
+| 发现的问题 1 | `.gitignore` 末尾被 Maker 自动追加了**裸 `tools/` 规则**（第 124 行），会命中任意层级的 `tools/` 目录 → `scripts/tools/` 下的**新建**文件也会被忽略。S21 提交时 `git add scripts/tools/README.md` 报 `paths are ignored` 就是它造成的（已跟踪文件不受影响，故当时仍提交成功）。已收紧为 `/tools/`，并加 `__pycache__/` / `*.pyc` |
+| 发现的问题 2 | 项目自有、不可复现的源素材全在被忽略的 `.tmp/`：96 帧翻页源动画 25.7MB、题库源 `xinhua_idiom.json` 9.8MB、美术母版、字体原备份、骨骼草稿，合计 46.7MB，随时可能被清理 |
+| 处理 | 新建 `source_assets/`（`scholar_frames/` 96 张 + `art_masters/` 11 张 + `rig_drafts/` 2 个 + `fonts/` 3 个 + `data/` 1 个 + `README.md`），全部纳入 git；`.workbuddy/memory/` 通过 `/.workbuddy/*` + `!/.workbuddy/memory/` 例外规则入库；S21 的 6 处路径引用同步更新 |
+| 为什么不进游戏包 | `.project/settings.json` 的 `build.asset_dirs` 只有 `../assets` 与 `../scripts`，本目录在根 → 不打包、不受 `default:["**"]` 全量预载影响，S19 的加载优化不受影响；也无需 `.meta` |
+| 有意不入库 | 根 `tools/`（**远端 pre-receive 钩子禁止跟踪**，强推会被拒）、`.cli/` `.installer/` `urhox-libs/` `examples/` `engine-docs/` `schemas/` `templates/`（平台/引擎自带）、`.tmp/` 其余压缩试验图与日志、`.maker/` 与 IDE 配置、`save.json*`（本地存档）、`.DS_Store` / `*.log` / `*.pyc` |
+| 风险 | 仓库体积增加约 47MB（源帧为无损 PNG，未转 JPEG/WebP 以保持生成输入可复现）；若 Maker 再次自动追加裸 `tools/`，需按 `.gitignore` 里的注释改回 `/tools/` |
 

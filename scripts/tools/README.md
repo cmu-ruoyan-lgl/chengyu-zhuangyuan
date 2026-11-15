@@ -10,8 +10,8 @@ SUMMARY JSON（`kudos_local_frame` 需回填 `config.json` 的 `ui.scholar.sprit
 
 ```bash
 # D. 完整循环帧目录（★ S21 起为线上版本来源）：96 帧白底抽帧 → 32 帧真翻页动画
-#    源帧副本 .tmp/scholar_video_frames/（不入 git），尾帧≈首帧，固定机位
-python3 scripts/tools/scholar_spritesheet.py --frames-dir .tmp/scholar_video_frames \
+#    源帧已纳入 git：source_assets/scholar_frames/（不进游戏包），尾帧≈首帧，固定机位
+python3 scripts/tools/scholar_spritesheet.py --frames-dir source_assets/scholar_frames \
     --even-frames 32 --kudos-source-frame 72 --frame-max 224 --colors 96 --flip-interval 5
 
 # A. 零积分烘焙（S13–S20 的旧来源，现仅作回退）：scholar.png + 翻页/呼吸/轻摇编排直接渲染帧
