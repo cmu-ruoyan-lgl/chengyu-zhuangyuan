@@ -86,7 +86,7 @@
   `docs/上架TapTap-操作手册.md`、`docs/上线差距清单-2026-11-15.md`、`docs/美术素材清单.md`、
   `source_assets/README.md`、`scripts/tools/README.md`。
 
-## 上线 / 真机状态（S23–S24，均未解决）
+## 上线 / 真机状态（S23–S25，均未解决）
 - 官方六步顺序不可调：建游戏→传包体→**先自测**→**再补资料**→开测试→提审上线。
   新硬门槛：关卡/制造游戏提审前须签《创意工坊内容授权协议》（`SCE_AGREEMENT_REQUIRED`），签署是法律行为须用户明确同意。
   资质（小游戏备案/ICP、独立隐私审核、适龄分级）是独立流程，`qualification get-assessment` 为权威入口。
@@ -95,8 +95,18 @@
   `game.json`/`index.html`/`assets`/`scripts` **全 404 NoSuchKey** → 面板「更新测试版/真机自测」上传从未成功，
   容器拿不到包静默退出。`generate_test_qrcode` **只重画二维码、不传包**（重新出码无效）；
   `add_test_whitelist` 需真实 TapTap user_id（project author.id 会报 400「用户 id 异常」）。
-  判定修复：浏览器访问 `.../src/m_x7qf/game.json` 变 200。绕过候选：CLI 登录后
-  `app list-packages --dev-id 504802 --app-id 996762` 查 Spark 包体，再 `+bind-spark-version` 走开放试玩。
+  判定修复：浏览器访问 `.../src/m_x7qf/game.json` 变 200。
+- **S25（11-16）证伪「改版本号强制触发上传」**：升到 1.0.15 后 `project.json` 200 但 15 个常见入口对象仍全 404；
+  远端 sync 提交只改 `.project/project.json` 4 行（version + qrcode 换名），新旧二维码 PNG 均 8453B、
+  Vision 解码 payload 逐字相同 → **继续点「更新/重新出码」100% 无效，别再试**。
+  `version` 是 Maker 元数据，与后台 Spark `version_code` 是两套编号。
+- **官方口径（CLI skill `taptap-package-management`）**：「TapTap 制造包体全部由 Maker 传入，
+  CLI 不提供 Spark 包体上传或更新能力」；MCP 19 个工具也无上传测试包接口
+  （`confirm_remote_build_without_submit` 指 git 提交，不是上传包）。正确自测码 =
+  `package-management list-spark-versions` 取 `version_code` → `get-test-qr-code --data '{"version_code":"…"}'`，
+  与 Maker 面板出的 debug 码不是同一套。CLI 登录后先查 `get-available-package-types` + `list-spark-versions`
+  `--dev-id 504802 --app-id 996762`：空列表 ⇒ 平台上传管线故障需官方支持；有版本 ⇒ 出真自测码或
+  `app +bind-spark-version` 走开放试玩（均不等价于修好 debug 通道）。
 - 本地提审阻断项（未改，属写操作）：`project.json` 的 icon/screenshots/promotional_image 全空、
   无实机 9:16 截图；`config.json` 的 iap.products(4)/ad.placements(4) 仍开、`privacy_url=""`、实名占位；真机三局自测从未跑通。
 - 需用户处理（非代码）：版号与出版审批、后台信息填写与送审、实名/防沉迷资质与 SDK、

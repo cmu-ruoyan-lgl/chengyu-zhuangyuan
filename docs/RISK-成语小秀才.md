@@ -745,3 +745,29 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 4. 可选旁路：登录 `taptap-cli`（`auth login`，5 分钟设备码）后跑 `app list-packages --dev-id 504802 --app-id 996762`
    查平台侧是否已有可绑定的 Spark 版本包体；若有，用 `app +bind-spark-version` 绑定正式包体槽位走**开放试玩**，
    绕开 debug 通道（但这不等价于修好真机自测）。
+
+### 25.0 「升版本到 1.0.15 仍 404」复核 + 官方包体链路定性（2026-11-16 00:20）
+
+用户按 24.0 的建议点了「更新」，版本升到 **1.0.15**，复测 `game.json` 依旧打不开。本轮把「升版本能强制触发上传」这一假设**证伪**，并查到官方权威口径：
+
+| 编号 | 证据 | 结论 |
+|---|---|---|
+| S25-1 | 线上 `src/m_x7qf/project.json` = **200 / 1340B / version 1.0.15**（含 trial_note、icon_url）；`game.json` `index.html` `config.json` `main.lua` `assets/` `scripts/` 仍全部 **404 NoSuchKey**；另探测 `game.js` `index.js` `main.js` `manifest.json` `application.json` `game.zip` `code.zip` `dist/game.json` `1.0.15/game.json` `res/game.json` `assets/data/config.json` `scripts/main.lua` 共 15 个常见入口，**无一 200** | 目录里只有元数据 `project.json` 一个文件，代码包从未落地；1.0.15 与 1.0.14 无差别 |
+| S25-2 | 远端自动同步提交 `02645cc`（00:18:40）**只改 `.project/project.json` 4 行**：version 1.0.14→1.0.15、`test_qrcode` 换成 `m_x7qf_1794759511074.png`；无包体产物、无 assets/scripts 变更 | 「更新」= 写元数据 + 重画码，**不含上传代码包**。改版本号只是改这一行，**不能**触发上传 → **24.0 解法第 1 条的「改小版本号强制触发」无效，勿再重试** |
+| S25-3 | 新旧二维码 PNG 均 **8453B**，macOS Vision 解码 payload **逐字相同**：`game_url=https://tapcode-sce.spark.xd.com/src/m_x7qf/`、`tag=test`、`server=e.production.spark.xd.com`；连 `miniapp_id` / `portrait` 都一致 | 换文件名不改变目标路径，重出码 100% 无效（印证 S24-5） |
+| S25-4 | OSS 匿名列举 `?prefix=src/m_x7qf/` / `?list-type=2` 均 **403 Forbidden**（Tengine） | 只能逐对象探测，无法直接列出目录；S25-1 的 15 个探测已足够判定 |
+| S25-5 | MCP 工具全集 **19 个**（`maker_status_lite`、`maker_build_current_directory`、`generate_*` 素材类、`generate_test_qrcode`、`add_test_whitelist`、`get_ad_config`、`get_debug_feedbacks`），**没有任何上传测试包体的接口**。`maker_build_current_directory` schema 里的 `confirm_remote_build_without_submit` 指的是「是否提交本地 git 变更到远端构建」，**不是**上传测试包 | 代码侧/工具侧确实无代劳入口，S24-7 判断成立 |
+| S25-6 | 官方 CLI 内嵌 skill `taptap-package-management` 原文：「**TapTap 制造包体全部由 Maker 传入；CLI 不提供 Spark 包体上传或更新能力**」；正确自测码路径是 `package-management list-spark-versions`（取 `version_code`）→ `get-test-qr-code --data '{"version_code":"…"}'`。`package_id` 与 `version_code` 互斥 | 用户一直扫的是 Maker 面板 `generate_test_qrcode` 出的 **debug 调试码**（`src/m_x7qf/`），与开发者后台「包体版本自测码」**不是同一套**；CLI 也无法补传 Spark 包，只能查已有版本 |
+
+**修正后的定性**：`version` 是 Maker 项目元数据（`project.json`），与 Spark 代码包（后台 `version_code`）是两套编号。
+问题既不是版本号、也不是二维码、更不是 Lua 代码，而是 **Maker 侧「把构建产物推到 Spark 测试包库」这一步从未成功**；
+面板「更新测试版」不覆盖该步骤。继续点「更新 / 重新出码」不会有任何变化。
+
+**下一步（唯一有信息量的动作）**：完成 `taptap-cli auth login` 后跑
+`package-management get-available-package-types` → `list-spark-versions --dev-id 504802 --app-id 996762`：
+- 列表**为空** ⇒ 后台从未收到任何制造包体，属平台上传管线故障，须带 S25-1~S25-6 证据联系 TapTap 制造官方；
+- 列表**有版本** ⇒ 用其 `version_code` 调 `get-test-qr-code` 拿**真正的自测二维码**（PNG 交付给用户扫码），
+  或用 `app +bind-spark-version` 绑正式包体槽位走开放试玩；两者都不等价于修好 debug 通道。
+
+CLI 授权状态（本轮）：`auth status` = 未配置，已发起设备码（5 分钟），等待用户浏览器确认后轮询。
+本地已 `git merge --ff-only origin/main` 同步到 1.0.15（`02645cc`），工作区干净。
