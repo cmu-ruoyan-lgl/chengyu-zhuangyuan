@@ -697,3 +697,20 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 | 有意不入库 | 根 `tools/`（**远端 pre-receive 钩子禁止跟踪**，强推会被拒）、`.cli/` `.installer/` `urhox-libs/` `examples/` `engine-docs/` `schemas/` `templates/`（平台/引擎自带）、`.tmp/` 其余压缩试验图与日志、`.maker/` 与 IDE 配置、`save.json*`（本地存档）、`.DS_Store` / `*.log` / `*.pyc` |
 | 风险 | 仓库体积增加约 47MB（源帧为无损 PNG，未转 JPEG/WebP 以保持生成输入可复现）；若 Maker 再次自动追加裸 `tools/`，需按 `.gitignore` 里的注释改回 `/tools/` |
 
+
+### 23.0 官方 taptap-cli 上线链路核实（2026-11-15）
+
+用户反馈「TapTap 支持 tap cli，可以管理项目上线」，要求盘点上线缺口。当场联网核实
+`developer.taptap.cn/v3/cli/`、`agents.md`、`skills/taptap-app-edit/`、`skills/taptap-qualification/`：
+
+| 编号 | 结论 | 影响 |
+|---|---|---|
+| S23-1 | CLI 真实存在且本机可跑：`@taptap/cli 2026.11.13`（contract 3），命令为 `taptap-cli`；`auth status` = **未配置** | 平台侧权威缺口尚查不了，已发起设备码授权（`auth login --no-wait --json`，5 分钟有效），待用户浏览器确认 |
+| S23-2 | **新增硬门槛**：官方明确「关卡 / TapTap 制造游戏提审前须先签《创意工坊内容授权协议》」，缺失时 `app analyze-status` 返回 `SCE_AGREEMENT_REQUIRED` | 2026-10-25 版《上架TapTap-操作手册》未覆盖，已在 §0.6 补记；签署属法律行为须用户明确同意 |
+| S23-3 | 官方六步顺序：建游戏→传包体→**先自测**→**再补资料**→开测试→提审上线 | 本项目卡在第 2～6 步；真机通道仍受 S18-1 阻塞 |
+| S23-4 | 「Tap 小游戏上传目前在控制台完成，不走 CLI 上传命令」；但 CLI 有 `app list-packages` + `app +bind-spark-version` 可查/绑已有制造 Spark 版本 | 登录后实测是否可绕过 RISK 18.0 的面板「更新测试版」失败 |
+| S23-5 | 资质细分为独立流程：小游戏备案/ICP、独立隐私审核、适龄分级（8/12/16）；`qualification get-assessment` 为权威入口 | 旧手册「只需防沉迷+隐私」口径可能过时，以实测为准 |
+| S23-6 | 本地核查：`project.json` 的 `assets.icon/screenshots/promotional_image` 全空；`config.json` 的 `iap.products`(4) / `ad.placements`(4) 仍开、`privacy_url=""`、实名仍是占位 | 均为提审阻断项；因属写操作，本轮**未修改代码/配置** |
+
+产出：`docs/上线差距清单-2026-11-15.md`（六步状态 + A/B/C/D 四类清单 + CLI 边界 + 推进顺序），
+`docs/上架TapTap-操作手册.md` 新增 §0.6。官方 §7 要求提审/上线等动作须单独确认，不得批量执行。
