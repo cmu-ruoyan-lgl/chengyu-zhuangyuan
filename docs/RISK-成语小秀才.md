@@ -821,3 +821,25 @@ CLI 授权落地：`/Users/ruoyan/.taptap-cli/taptap.json`（Bearer，过期 Uni
 
 **残留**：真机效果需重新上传包体后复验（改动只在本地 + git，Spark 版本仍停在 16）。
 `safeTop()` 依赖真机 `sdk` 返回胶囊矩形；Web / headless 无 sdk 时退化为系统安全区，不影响门禁。
+
+---
+
+### 30.0 首页单屏 + 书童归位 / 游戏页间距与空吐司（2026-11-16 01:15–01:35）
+
+用户用 **version 17** 真机截图反馈：① 首页书童翻页动画看不见了（只露一个头顶），要求「不要上下拖动，一下子能看见全部的内容，就算换位置也好，只要美观」；
+② 游戏页字库贴 16 格棋盘太近、离下方按钮又太远；③ 最下面一条白色小胶囊不知是干啥的，要去掉。
+
+| 编号 | 结论 |
+|---|---|
+| S30-1 | **书童不可见 = 被裁，不是没播**。`home.lua` 把 `buildScholar()` 放在 ScrollView 内容的**最后一个 child**，sprite 容器固定高 `size+20=340` base；真机 ScrollView 可视高 = 屏高 − footer，原有标题/按钮/四宫格已占约 990 base → 书童整块落在折叠线以下，截图里只露出深色头顶 |
+| S30-2 | 首页改法：`buildScholar(sizeOverride)` 接受尺寸；真机按 `vw × ui.scholar.home_width_ratio(0.34)` 算边长并封顶 `home_size_max(240)`；书童与「继续闯关」按钮**横向并排**（左 58% / 右 42%），省掉独立一整行；四宫格卡片 / 标题区 / 底栏的固定 padding、margin、圆角、图标尺寸统一改 `Theme.fit()` 随视口收缩 |
+| S30-3 | **单屏分支**：`vh/vw ≥ ui.home_single_screen_ratio(1.5)` 且非大字模式 → 普通 `UI.Panel` + `justifyContent="space-between"` 把 header / middle / grid / footer 四段铺满整屏，彻底不需要滚动；矮屏/横屏（headless 巡检 1322×546）仍走 ScrollView 兜底，避免固定分区被压出 Layout Warning |
+| S30-4 | **本地横屏巡检覆盖不到单屏分支**：Yoga 可用高度由引擎窗口决定（546），mock `UI.GetHeight()` 只能骗过 Lua 判断、布局仍按 546 算 → 必然假阳性。故单屏布局只能靠 version 18 真机复验；本轮门禁覆盖的是 ScrollView 分支 |
+| S30-5 | **白色胶囊 = `play.lua buildBanner()` 的空文案吐司**：`UI.Label{text=""}` + `paddingHorizontal=24 / paddingVertical=4` 的白色半透明圆角 Panel，初始常驻可见；`showBanner()` 在提示 / 洗牌 / 成语达成 / 填错 4 处调用时才会填字。修法：`refs.bannerBox` 初始 `opacity=0` + `pointerEvents="none"`，由 showBanner 的 opacity 关键帧淡入（引擎要求动画元素起始显式写 0，**不能用 `visible=false`**） |
+| S30-6 | 间距：字库在竖屏真机改 `justifyContent="flex-end"` + `paddingBottom = Theme.fit(ui.bank_padding_bottom=24)`，贴住分区底部 → 与棋盘卡片拉开、与下方按钮收紧；矮屏仍居中防溢出 |
+| S30-7 | **一次 Layout Warning 踩坑**：曾把 `layout_ratio.banner` 从 0.06 压到 0.035，矮屏巡检 `546×0.035≈19px` 装不下吐司盒子（48×24）→ 4 条 `Overflow in 'Panel'`。已恢复 S27 原比例（总和 1.0）。结论：**吐司分区有最小高度，别压它** |
+| S30-8 | 验证：`verify.sh` 全绿（54 单测 / 300 关 0-0 / `res=0`）；`validate_pages.lua` **Layout Warning 0**；`VALIDATE_FRAMES=760 validate_scholar.lua` 0 错误、知识++ 正常；`luacheck scripts/` **0 warnings / 0 errors**；改了 Lua 注释中文 → 重跑字体子集（7311 字 / 2.0MB）+ MiSans stub（14KB） |
+
+**残留**：改动尚未上传包体，后台 Spark 仍是 **version 17**；需用户在发布面板再点一次「更新」出 version 18，
+用 `get-test-qr-code` 取 develop 码后真机复验单屏布局、书童位置与间距。若觉得并排让「继续闯关」按钮偏窄，
+调 `home.lua` middle 的左右比例即可（当前 58/42）。

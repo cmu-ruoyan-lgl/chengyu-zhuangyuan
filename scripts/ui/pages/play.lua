@@ -331,6 +331,10 @@ local function buildBank(session)
     -- 汉字跟着字块边长走，不随视口字号系数缩小（否则真机上大块里一个很小的字）
     local fontSize = math.min(Theme.fontRaw("hanzi", 40), block * 0.56)
     local vw = select(1, UI.GetViewportSize()) or 1080
+    local vh = select(2, UI.GetViewportSize()) or 1920
+    -- S30：只有竖屏真机才把字库贴到分区底部（与棋盘拉开、与按钮收紧）；
+    -- 矮屏/横屏巡检保持居中，避免两行字块撑破分区产生 Layout Warning。
+    local alignBottom = vh >= vw * Config.num("ui.home_single_screen_ratio", 1.5)
     local usable = vw - 60
     local perRow = math.max(1, math.floor(usable / (block + gap)))
     -- 窄屏（真机）算出的列数不稳定，固定成 2 行 × 4 列的稳定节奏，点击区也更宽松。
@@ -399,7 +403,8 @@ local function buildBank(session)
         height = pct(Theme.ratio("bank", 0.25)),
         flexShrink = 1,
         flexDirection = "column",
-        justifyContent = "center",
+        justifyContent = alignBottom and "flex-end" or "center",
+        paddingBottom = alignBottom and Theme.fit(Theme.num("bank_padding_bottom", 24)) or 0,
         children = rows,
     }
 end
@@ -538,6 +543,10 @@ local function buildBanner()
         width = "100%",
         height = pct(Theme.ratio("banner", 0.06)),
         flexShrink = 1,
+        -- S30：吐司初始不可见 —— 空文案时不再露出一条白色圆角胶囊。
+        -- showBanner 的 opacity 关键帧会把它淡入；引擎要求动画元素起始 opacity 显式写 0。
+        opacity = 0,
+        pointerEvents = "none",
         justifyContent = "center",
         alignItems = "center",
         children = { UI.Panel {

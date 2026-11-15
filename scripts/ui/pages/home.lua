@@ -218,14 +218,14 @@ end
 -- 「动画时长 / flip_interval」归一，翻页周期仍由 config 控制；
 -- 知识++ 由翻页完成帧（onFrameChange）驱动，与画面天然同步。
 -- 图集缺失时自动回退整图模式（包内资源探测只能走 cache:Exists，见 RISK S7-1）。
-local function buildScholarSprite()
+local function buildScholarSprite(sizeOverride)
     local sp = Config.get("ui.scholar.sprite", nil) or {}
     local src = type(sp.src) == "string" and sp.src or "sprites/scholar/sprite.json"
     if not cache:Exists(src) then
         print("[home] 书童图集缺失，回退整图模式: " .. tostring(src))
         return buildScholarImage()
     end
-    local size = tonumber(sp.width) or cfgNum("size", 320)
+    local size = sizeOverride or tonumber(sp.width) or cfgNum("size", 320)
     local animName = sp.anim_read or "read"
     local kudosFrame = tonumber(sp.kudos_local_frame) or -1
     local gen = scholarGen_ + 1
@@ -267,9 +267,9 @@ local function buildScholarSprite()
 end
 
 --- 四宫格与底栏之间的书童区（用户指定位置）
-local function buildScholar()
+local function buildScholar(sizeOverride)
     if Config.get("ui.scholar.mode", "image") == "sprite" then
-        return buildScholarSprite()
+        return buildScholarSprite(sizeOverride)
     end
     return buildScholarImage()
 end
@@ -279,7 +279,7 @@ local function entryCard(title, sub, onTap, opts)
     opts = opts or {}
     local kids = {}
     if opts.icon then
-        kids[#kids + 1] = W.iconOrDot(opts.icon, 44, opts.iconDot)
+        kids[#kids + 1] = W.iconOrDot(opts.icon, Theme.fit(36), opts.iconDot)
     end
     kids[#kids + 1] = UI.Label {
         text = title,
@@ -289,7 +289,7 @@ local function entryCard(title, sub, onTap, opts)
         textAlign = "center",
         width = "100%",
         flexShrink = 1,
-        marginTop = opts.icon and 10 or nil,
+        marginTop = opts.icon and Theme.fit(8) or nil,
     }
     kids[#kids + 1] = UI.Label {
         text = W.wrapLines(sub or "", 9),
@@ -297,14 +297,14 @@ local function entryCard(title, sub, onTap, opts)
         fontColor = opts.subColor or c("ink_dim"),
         textAlign = "center",
         width = "100%",
-        marginTop = 10,
+        marginTop = Theme.fit(8),
         flexShrink = 1,
     }
     return UI.Panel {
         flexGrow = 1,
         flexBasis = 0,
-        margin = 10,
-        borderRadius = 26,
+        margin = Theme.fit(8),
+        borderRadius = Theme.fit(20),
         backgroundColor = c("panel"),
         borderWidth = 3,
         borderColor = opts.border or c("panel_edge"),
@@ -312,8 +312,8 @@ local function entryCard(title, sub, onTap, opts)
         flexDirection = "column",
         justifyContent = "center",
         alignItems = "center",
-        paddingVertical = 26,
-        paddingHorizontal = 12,
+        paddingVertical = Theme.fit(16),
+        paddingHorizontal = Theme.fit(12),
         onClick = onTap,
         children = kids,
     }
@@ -350,10 +350,10 @@ function Home.mount()
                 fontColor = c("ink_dim"),
                 textAlign = "center",
                 width = "100%",
-                marginTop = Theme.fit(14),
+                marginTop = Theme.fit(10),
             },
             UI.Panel {
-                marginTop = Theme.fit(22),
+                marginTop = Theme.fit(14),
                 children = { W.chip(
                     string.format("官职 · %s · 已过关 %d", tostring(rank.name), rank.levelsPassed or 0),
                     { bold = true }) },
@@ -369,7 +369,7 @@ function Home.mount()
             or string.format("共 %d 关等你挑战", maxLevel))
     local playBtn = UI.Panel {
         width = "80%",
-        paddingVertical = 26,
+        paddingVertical = Theme.fit(20),
         borderRadius = 40,
         backgroundGradient = { direction = "to-bottom", from = c("jade"), to = c("jade_deep") },
         borderWidth = 3,
@@ -400,12 +400,31 @@ function Home.mount()
             },
         },
     }
+    -- S30：书童与闯关按钮并排，省掉原来独立一整行（size+20 base）的高度。
+    -- 真机竖屏一屏即可容纳标题 / 按钮+书童 / 四宫格 / 底栏，不需要上下拖动。
+    local vw = UI.GetWidth() or Config.num("ui.design_width", 1080)
+    local scholarSize = math.floor(math.min(
+        cfgNum("home_size_max", 240),
+        vw * cfgNum("home_width_ratio", 0.34)))
     local middle = UI.Panel {
         width = "100%",
-        flexDirection = "column",
+        flexDirection = "row",
         alignItems = "center",
-        paddingTop = 64,
-        children = { playBtn },
+        justifyContent = "center",
+        paddingHorizontal = Theme.fit(18),
+        paddingTop = Theme.fit(24),
+        children = {
+            UI.Panel {
+                width = "58%",
+                alignItems = "center",
+                children = { playBtn },
+            },
+            UI.Panel {
+                width = "42%",
+                alignItems = "center",
+                children = { buildScholar(scholarSize) },
+            },
+        },
     }
 
     -- 四宫格：府邸 / 挑战 / 图鉴 / 商店
@@ -413,8 +432,8 @@ function Home.mount()
     local grid = UI.Panel {
         width = "100%",
         flexDirection = "column",
-        paddingHorizontal = 22,
-        marginTop = 56,
+        paddingHorizontal = Theme.fit(22),
+        marginTop = Theme.fit(28),
         children = {
             UI.Panel {
                 width = "100%",
@@ -463,7 +482,7 @@ function Home.mount()
         width = "100%",
         flexDirection = "column",
         alignItems = "center",
-        paddingBottom = 40,
+        paddingBottom = Theme.fit(28),
         children = {
             UI.Panel {
                 flexDirection = "row",
@@ -472,7 +491,7 @@ function Home.mount()
                     W.chip(string.format("体力 %d/%d", Game.stamina(),
                         Config.num("stamina.max", 50)),
                         { icon = "stamina", dotColor = c("jade") }),
-                    UI.Panel { width = 16 },
+                    UI.Panel { width = Theme.fit(16) },
                     W.chip("金币 " .. tostring(Game.gold()),
                         { icon = "gold", dotColor = c("coin"), fg = c("gold_dark") }),
                 },
@@ -483,26 +502,44 @@ function Home.mount()
                 fontColor = c("ink_dim"),
                 textAlign = "center",
                 width = "100%",
-                marginTop = 24,
+                marginTop = Theme.fit(12),
                 flexShrink = 1,
             },
         },
     }
 
-    -- 主体放 ScrollView：矮屏/横屏（如 headless 巡检窗口 1322×546）不溢出、可滚动
-    local body = UI.ScrollView {
-        width = "100%",
-        flexGrow = 1,
-        flexBasis = 0,
-        scrollY = true,
-        showScrollbar = false,
-        children = { UI.Panel {
+    -- S30：真机竖屏走单屏 Panel，四段用 space-between 均匀铺满整屏，
+    -- 书童与按钮并排后无需上下拖动即可看全；矮屏/横屏（headless 巡检 1322×546）
+    -- 仍保留 ScrollView 兜底，避免固定分区被压出 Layout Warning。
+    local vh = UI.GetHeight() or Config.num("ui.design_height", 1920)
+    local singleScreen = not Theme.isBigText()
+        and vh >= vw * Config.num("ui.home_single_screen_ratio", 1.5)
+    local sections = { header, middle, grid, footer }
+    local body
+    if singleScreen then
+        body = UI.Panel {
             width = "100%",
+            flexGrow = 1,
+            flexBasis = 0,
             flexDirection = "column",
-            flexShrink = 1,
-            children = { header, middle, grid, buildScholar() },
-        } },
-    }
+            justifyContent = "space-between",
+            children = sections,
+        }
+    else
+        body = UI.ScrollView {
+            width = "100%",
+            flexGrow = 1,
+            flexBasis = 0,
+            scrollY = true,
+            showScrollbar = false,
+            children = { UI.Panel {
+                width = "100%",
+                flexDirection = "column",
+                flexShrink = 1,
+                children = sections,
+            } },
+        }
+    end
 
     local root = UI.Panel {
         width = "100%",
@@ -511,8 +548,7 @@ function Home.mount()
         backgroundColor = c("bg_top"),
         backgroundImage = "Textures/bg_main.png",
         backgroundFit = "cover",
-        justifyContent = "space-between",
-        children = { body, footer },
+        children = { body },
     }
     UI.SetRoot(root, true)
     return root
