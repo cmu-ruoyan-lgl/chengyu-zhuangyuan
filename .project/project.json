@@ -12,7 +12,7 @@
     "category": "word",
     "screen_orientation": "portrait",
     "collection_type": "sce",
-    "trial_note": "",
+    "trial_note": "做这个游戏，是因为我们始终记得小时候第一次用「亡羊补牢」造句时的得意。成语是中文里最精炼的浪漫，四个字就能装下一个人的故事。我们不想做逼氪的题海，只想让你在等车、睡前的几分钟里，偶尔与一个老成语重逢，或者认识一位新朋友。如果你玩到某条释义会心一笑，那就是我们最高兴的时刻。祝你和家里的小朋友，都能在这里找回对文字的兴致。",
     "app_platforms": "1,2",
     "app_id": 996762,
     "miniapp_id": "tapmc2hfuqyeejniq6",
@@ -21,13 +21,14 @@
   "assets": {
     "icon": "",
     "screenshots": [],
-    "promotional_image": ""
+    "promotional_image": "",
+    "icon_url": "https://img-tc.tapimg.com/market/images/afd5cf898c4d0ed792e535fd4aa7ade9.png"
   },
   "test_qrcode": {
-    "url": "https://tapcode-sce.spark.xd.com/qrcode/m_x7qf_1792918663713.png",
-    "generated_at": "2026-10-25T08:57:43.817Z"
+    "url": "https://tapcode-sce.spark.xd.com/qrcode/m_x7qf_1794726255658.png",
+    "generated_at": "2026-11-15T07:04:15.825Z"
   },
   "metadata": {
-    "updated_at": "2026-10-25T08:57:43.817Z"
+    "updated_at": "2026-11-15T07:04:15.825Z"
   }
 }
