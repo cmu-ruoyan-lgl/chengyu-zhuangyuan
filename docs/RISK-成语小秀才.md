@@ -714,3 +714,34 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 
 产出：`docs/上线差距清单-2026-11-15.md`（六步状态 + A/B/C/D 四类清单 + CLI 边界 + 推进顺序），
 `docs/上架TapTap-操作手册.md` 新增 §0.6。官方 §7 要求提审/上线等动作须单独确认，不得批量执行。
+
+### 24.0 真机自测「扫码滴一下但什么都不弹」根因复核（2026-11-15 晚）
+
+用户截图反馈：每次扫面板「真机自测」二维码，TapTap App 「滴一下」后无任何界面弹出。
+本轮用 macOS Vision 直接解码截图里的二维码 + 逐端点实测，证据链完整：
+
+| 编号 | 证据 | 结论 |
+|---|---|---|
+| S24-1 | 二维码内容 = `https://www.taptap.cn/qrcode/miniapp?id=tapmc2hfuqyeejniq6&engine_type=sce&type=debug&launch_params={...}`；其中 `game_url=https://tapcode-sce.spark.xd.com/src/m_x7qf/`、`tag=test`、`server=e.production.spark.xd.com` | 「滴一下」= App **成功识别二维码**，扫码动作/App 版本/网络均正常；问题在之后的拉包阶段 |
+| S24-2 | `src/m_x7qf/` 下 `project.json` = **200**（version 1.0.14，含今天新填的 trial_note / icon_url / 新二维码），但 `game.json` / `index.html` / `config.json` / `main.lua` / `manifest.json` / `assets/` / `scripts/` **全部 404 NoSuchKey** | 只上传了**元数据**，**游戏包体从未上传成功**；容器拿不到入口文件即静默退出 → 「啥也不弹」 |
+| S24-3 | 截图时间 15:04:28，远端 `project.json.test_qrcode.generated_at` = 15:04:15，版本 1.0.14（本地 .project/project.json 仍是 1.0.13） | 截图右上角「上传中」那次操作确实推了元数据，但上传**未完成**，与 S18-1/S18-2 的「上传二维码失败」同源且一直未修复 |
+| S24-3b | **远端自动同步提交 `8631b9e`（15:04:24）改了 `.project/project.json`**：version 1.0.13→**1.0.14**、`trial_note` 从空填成完整试玩说明、新增 `icon_url`（TapTap CDN 图标）、`test_qrcode` 换新；`0062171`（21:42:28，本次 generate_test_qrcode 触发）再次换码 | **用户其实已经点过「更新测试版 / 真机自测」并补齐了资料**，平台把资料同步成功、版本号递增、图标也上传到了 CDN，**唯独游戏包体没进 `src/m_x7qf/`**。所以不是「没操作」，是平台上传管线的「资料 ↔ 包体」两步只成了第一步；合并远端后这些资料已回到本地，勿回退 |
+| S24-4 | `get_debug_feedbacks` 返回 `total=0` | 真机容器从未成功启动，无任何设备会话日志，排除「进了游戏但白屏」 |
+| S24-5 | 调用 `generate_test_qrcode` 成功产出新码 `m_x7qf_1794750148203.png`（21:42），解码后 `game_url` **仍是同一个 404 路径**，复测 404 不变；`project.json` 未被更新 | **该工具只重画二维码图片，不上传包体**；重新生成二维码对解决问题无效。修正旧结论「CLI/MCP 无对应命令可代点」：MCP 有 QR 生成/白名单工具，但**没有上传测试包体的命令** |
+| S24-6 | `add_test_whitelist` 传作者 ID 1532936202 返回 400「该用户 id 异常」 | 白名单不是本现象根因（且需真实 TapTap user_id，非 project author.id） |
+| S24-7 | `maker_build_current_directory` 只构建网页预览包；官方 CLI 的 `app list-packages` / `+bind-spark-version` 管的是**上线的资料页包体槽位**，不是 debug 真机通道 | 网页预览能开 ≠ 真机能跑，两条管线不同；建网页包无法替代「更新测试版」 |
+
+**结论**：不是手机、TapTap App、扫码方式或项目 Lua 代码问题（网页版正常、包体代码无改动），也不是用户漏操作
+（S24-3b 证明资料早已提交且版本号已递增）。唯一根因是**平台「更新测试版 / 真机自测」上传管线只完成了
+资料同步，游戏包体始终没进测试 CDN**——从 2026-10-25 起一直如此（S18-1）。
+「滴一下」是识别成功音，随后容器拉 `game_url` 拿到 404 → 无内容可渲染 → 静默退出。
+
+**解法（需用户在面板操作，代码侧无法代劳）**：
+1. 在 maker.taptap.cn 发布面板再点一次「更新测试版 / 真机自测」，**等右上角「上传中」变成完成态**再扫码；
+   判定标准：浏览器直接访问 `https://tapcode-sce.spark.xd.com/src/m_x7qf/game.json` 返回 200（当前 404）。
+   若仍卡住，先改个小版本号（如 1.0.14→1.0.15）强制触发一次全新上传，避开可能的「同版本跳过上传」缓存。
+2. 若一直转圈或报「上传二维码失败」，截图报错文案；持续失败即带 S24-1~S24-5 证据向 TapTap 制造官方反馈。
+3. 上传成功后旧二维码可能失效，用 `generate_test_qrcode`（或面板）重新出码再扫；扫码账号需登录且与开发者账号同一环境。
+4. 可选旁路：登录 `taptap-cli`（`auth login`，5 分钟设备码）后跑 `app list-packages --dev-id 504802 --app-id 996762`
+   查平台侧是否已有可绑定的 Spark 版本包体；若有，用 `app +bind-spark-version` 绑定正式包体槽位走**开放试玩**，
+   绕开 debug 通道（但这不等价于修好真机自测）。
