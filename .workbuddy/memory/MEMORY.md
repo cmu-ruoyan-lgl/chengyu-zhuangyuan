@@ -96,17 +96,22 @@
   容器拿不到包静默退出。`generate_test_qrcode` **只重画二维码、不传包**（重新出码无效）；
   `add_test_whitelist` 需真实 TapTap user_id（project author.id 会报 400「用户 id 异常」）。
   判定修复：浏览器访问 `.../src/m_x7qf/game.json` 变 200。
-- **S25（11-16）证伪「改版本号强制触发上传」**：升到 1.0.15 后 `project.json` 200 但 15 个常见入口对象仍全 404；
-  远端 sync 提交只改 `.project/project.json` 4 行（version + qrcode 换名），新旧二维码 PNG 均 8453B、
-  Vision 解码 payload 逐字相同 → **继续点「更新/重新出码」100% 无效，别再试**。
-  `version` 是 Maker 元数据，与后台 Spark `version_code` 是两套编号。
-- **官方口径（CLI skill `taptap-package-management`）**：「TapTap 制造包体全部由 Maker 传入，
-  CLI 不提供 Spark 包体上传或更新能力」；MCP 19 个工具也无上传测试包接口
-  （`confirm_remote_build_without_submit` 指 git 提交，不是上传包）。正确自测码 =
-  `package-management list-spark-versions` 取 `version_code` → `get-test-qr-code --data '{"version_code":"…"}'`，
-  与 Maker 面板出的 debug 码不是同一套。CLI 登录后先查 `get-available-package-types` + `list-spark-versions`
-  `--dev-id 504802 --app-id 996762`：空列表 ⇒ 平台上传管线故障需官方支持；有版本 ⇒ 出真自测码或
-  `app +bind-spark-version` 走开放试玩（均不等价于修好 debug 通道）。
+- **S26（11-16）【重大修正，推翻 24.0/25.0 的「包体从未上传」归因】**：CLI 授权成功后拿到后台权威状态 ——
+  `get-available-package-types` = `["spark"]`；`list-spark-versions --page-all` = **16 个版本**，最新
+  `version_code=16` / 6.7MB / 00:18:30，`app list-packages` 全部 `ready`。**包体一直上传成功**，
+  每次点「更新」都新增版本号（14→15→16）；404 只是 `src/m_x7qf/` 这条 **debug 实时调试目录**为空。
+  `version`(1.0.15，Maker 元数据) 与后台 `version_code`(16) 是两套编号。
+  **真机根因 = 用错二维码通道**：面板 `generate_test_qrcode` 出的是 `type=debug` + `game_url=src/m_x7qf/`，
+  正确码是 `package-management get-test-qr-code --data '{"version_code":"16"}'` → `type=develop` +
+  `version_id=490150`（无 game_url），已出 512px PNG `artifacts/test-qr-spark-16.png`。
+  **别再点「更新/重新出码」、别去找官方修上传管线**。
+- CLI 授权已落地：`~/.taptap-cli/taptap.json`（Bearer 有效，过期 1802536050），后续查询免重登。
+  官方口径：「TapTap 制造包体全部由 Maker 传入，CLI 不提供 Spark 包体上传/更新能力」；MCP 19 工具也无上传接口
+  （`confirm_remote_build_without_submit` 指 git 提交，不是上传包）。自测码必须先 `list-spark-versions` 取 `version_code`。
+- `app analyze-status` 权威阻断项：3 个必填（`promotion_material_type`/`banner_4`/`screenshots`）、
+  `MISSING_PACKAGE` 未选主包体（`current_bindings: []`）；warnings 资质事实未确认 + 适龄分级待补齐；
+  **本次未返回 `SCE_AGREEMENT_REQUIRED`**。可选 `app +bind-spark-version --data '{"version_code":"16"}'`
+  绑主包体走开放试玩（**写操作须用户明确确认**，未执行）。
 - 本地提审阻断项（未改，属写操作）：`project.json` 的 icon/screenshots/promotional_image 全空、
   无实机 9:16 截图；`config.json` 的 iap.products(4)/ad.placements(4) 仍开、`privacy_url=""`、实名占位；真机三局自测从未跑通。
 - 需用户处理（非代码）：版号与出版审批、后台信息填写与送审、实名/防沉迷资质与 SDK、

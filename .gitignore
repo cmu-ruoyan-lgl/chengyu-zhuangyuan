@@ -128,3 +128,6 @@ __pycache__/
 #    若 Maker 再次自动追加裸 `tools/`，改回 `/tools/`。
 /.cache
 /tools/
+
+# S26 后台自测二维码等临时交付物（含开发者后台链接，不入库）
+/artifacts/

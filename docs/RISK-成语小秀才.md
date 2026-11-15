@@ -771,3 +771,34 @@ WARNING: Could not load global fallback font Fonts/MiSans-Regular.ttf
 
 CLI 授权状态（本轮）：`auth status` = 未配置，已发起设备码（5 分钟），等待用户浏览器确认后轮询。
 本地已 `git merge --ff-only origin/main` 同步到 1.0.15（`02645cc`），工作区干净。
+
+> ⚠️ **本节 S25-1~S25-6 的观测全部成立，但「包体从未上传成功 / 平台上传管线故障」的归因已被 §26.0 推翻。**
+> 404 只说明 `src/m_x7qf/` 这条 **debug 实时调试目录** 是空的，不代表后台没有包。请勿按本节「联系官方」操作。
+
+### 26.0 【重大修正】包体其实一直上传成功 —— 是用错了二维码通道（2026-11-16 00:28）
+
+设备码授权成功（`auth status` = Bearer Token 有效）后，第一次拿到平台后台权威状态，结论反转：
+
+| 编号 | 证据 | 结论 |
+|---|---|---|
+| S26-1 | `package-management get-available-package-types --dev-id 504802 --app-id 996762` → `available_package_types: ["spark"]`（唯一类型） | 后台确实按 TapTap 制造（Spark）管理包体 |
+| S26-2 | `list-spark-versions --page-all` → **16 个版本**；最新 `version_code=16` / **6.7MB** / `updated_at=1794759510`（**2026-11-16 00:18:30**）/ `min_sdk_version=71`；`app list-packages` 里 16 个包全部 `status: ready` | **包体早已上传成功**。每次点「更新」都新增一个版本号：14(11-15 15:04)、15(21:42)、16(00:18)。6.7MB 与 S19 字体优化后的包体吻合（更早版本为 11.3 / 13.3MB）→ 上传的是最新代码，不是旧包 |
+| S26-3 | 时间线：00:18:30 上传 version_code=16 → 00:18:40 远端 sync 提交 `02645cc`（1.0.15）→ 00:19 用户反馈「还是不行」 | 「更新」动作**完全成功**，产物落在后台版本库；用户检查的 `src/m_x7qf/game.json` 属于另一条通道，据此判断「没传包」是误判 |
+| S26-4 | 面板 debug 码 = `type=debug` + `game_url=.../src/m_x7qf/` + `tag=test`；后台自测码 = `type=develop` + `version_id=490150`，**不带 game_url**（macOS Vision 解码两个 PNG 对比） | 两条完全不同的通道。用户一直扫 debug 码 → 指向只有 `project.json` 的空目录 → 容器静默退出。24.0/25.0 的 404 观测成立，但归因错了 |
+| S26-5 | `get-test-qr-code --data '{"version_code":"16"}'` 成功返回 `qr_code_url`，**未**报 422（「自测功能不可用」/「版本尚未解析就绪」） | 版本 16 已解析就绪、可自测；已生成 512px PNG `artifacts/test-qr-spark-16.png` 交付用户扫码 |
+
+**修正后的根因**：不是包没传、不是版本没升、不是 Lua 代码问题，而是 **Maker 面板「真机自测」发出的 debug 二维码指向空的实时调试目录，
+真正可用的包在后台 Spark 版本库**。解法是改用后台自测码（`get-test-qr-code` 传 `version_code`），
+而不是继续点「更新测试版 / 重新出码」或找官方修上传管线。
+`version`(1.0.15，Maker 元数据) 与 `version_code`(16，后台包体号) 是两套编号，勿混淆。
+
+**提审侧权威状态**（`app analyze-status`，与真机自测无关）：
+- blockers：`MISSING_REQUIRED` 3 项（`promotion_material_type` / `banner_4` / `screenshots`）、
+  `MISSING_PACKAGE` 尚未选择主包体（`app list-packages` 的 `current_bindings: []`）；
+- warnings：`QUALIFICATION_FACTS_UNCONFIRMED`（资质判断事实未确认）、`AGE_GRADE_REQUIRED`（适龄分级待补齐）；
+- **本次未返回 `SCE_AGREEMENT_REQUIRED`**，与 S23-2 的预期不同，签署状态需以后台实况为准。
+
+可选下一步：`app +bind-spark-version --data '{"version_code":"16", ...}'` 把版本 16 绑到主包体槽位走开放试玩
+—— 属**写操作**，须用户明确确认后单独执行，本轮未做。
+
+CLI 授权落地：`/Users/ruoyan/.taptap-cli/taptap.json`（Bearer，过期 Unix 1802536050），后续平台查询无需重复授权。
