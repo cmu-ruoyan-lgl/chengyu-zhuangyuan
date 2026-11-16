@@ -328,8 +328,6 @@ end
 local function buildBank(session)
     local gap = Theme.num("cell_gap", 8)
     local block = Theme.num("bank_block_min", 88)
-    -- 汉字跟着字块边长走，不随视口字号系数缩小（否则真机上大块里一个很小的字）
-    local fontSize = math.min(Theme.fontRaw("hanzi", 40), block * 0.56)
     local vw = select(1, UI.GetViewportSize()) or 1080
     local vh = select(2, UI.GetViewportSize()) or 1920
     -- S30：只有竖屏真机才把字库贴到分区底部（与棋盘拉开、与按钮收紧）；
@@ -343,6 +341,40 @@ local function buildBank(session)
     if vw < Config.num("ui.design_width", 1080) * 0.7 then
         perRow = math.min(Theme.num("bank_per_row_max", 4), perRow)
     end
+
+    -- S31：每日挑战是 8×8、26~35 个候选字，沿用主线的固定 4 列会堆成 9 行，
+    -- 整片溢出 bank 分区盖住棋盘和底部按钮。竖屏真机按「字数 × 分区高度」自适应列数，
+    -- 字块边长随之收缩到能全部装进分区；宽屏巡检仍走上面的原逻辑。
+    if session and alignBottom and Game.mode() == "challenge" then
+        local bankH = vh * Theme.ratio("bank", 0.215)
+        local n = #session.bank
+        local idealMin = Theme.num("challenge_bank_min_block", 42)
+        local hardMin = Theme.num("challenge_bank_hard_min_block", 30)
+        local maxCols = Theme.num("challenge_bank_max_cols", 12)
+        local bestCols, bestBlock
+        -- 每个字块左右各有 gap/2 的 margin，按 cols 个 gap 扣，避免 9 列时溢出 5px。
+        -- 两轮筛选：先要边长≥idealMin（好看且好点），无解再放宽到 hardMin（仍可点击），
+        -- 最后兜底 maxCols。任何情况下都不会退回 4×88 的溢出布局。
+        for _, floorBlock in ipairs({ idealMin, hardMin }) do
+            for cols = 8, maxCols do
+                local rows = math.ceil(n / cols)
+                local b = math.floor((usable - gap * cols) / cols)
+                if b >= floorBlock and rows * (b + gap) <= bankH then
+                    bestCols, bestBlock = cols, b
+                    break
+                end
+            end
+            if bestCols then break end
+        end
+        if not bestCols then
+            bestCols = maxCols
+            bestBlock = math.floor((usable - gap * bestCols) / bestCols)
+        end
+        perRow, block = bestCols, bestBlock
+    end
+
+    -- 汉字跟着最终字块边长走，不随视口字号系数缩小（否则真机上大块里一个很小的字）
+    local fontSize = math.min(Theme.fontRaw("hanzi", 40), block * 0.56)
 
     refs.bank = {}
     if not session then
