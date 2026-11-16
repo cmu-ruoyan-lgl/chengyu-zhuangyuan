@@ -863,3 +863,24 @@ CLI 授权落地：`/Users/ruoyan/.taptap-cli/taptap.json`（Bearer，过期 Uni
 **重要时序**：S31 代码修复生成于 v19 **之后**，v19 包不含本修复。用户需再点一次「更新」出 v20 并用新的
 `get-test-qr-code` 码复验；直接扫 v19 只会看到旧的溢出布局。复验重点：候选字是否全部落在棋盘下方分区内、
 不再盖住棋盘 / 按钮，且字块仍可点。
+
+---
+
+### 32.0 首页按 2026-11-16 新设计稿对齐（2026-11-16 15:10–15:20）
+
+用户提供新版设计图（`2026-11-16_assets.grok.com_image__state_.jpg`），要求对照检查布局 / 视觉 / 组件结构 /
+响应式并更新差异，**保持原功能与交互不变**。比对结论：背景（竹叶+蓝天+白云+浅绿渐变）与书童序列帧
+图集**已与设计一致**，无需换素材；差异全部在结构与组件。
+
+| 编号 | 结论 |
+|---|---|
+| S32-1 | **结构差异**：S30 把书童与「开始闯关」按钮并排（左 58%/右 42%），新设计要求书童**独立居中一行**、按钮在其正下方（约占屏宽 60%）。改法：`sections` 由 4 段变 5 段 `{header, scholarSection, playSection, grid, footer}`，真机竖屏仍走 `space-between` 单屏，矮屏/横屏仍走 ScrollView 兜底；书童边长公式不变，仅 `home_width_ratio 0.34→0.40`、`home_size_max 240→260` |
+| S32-2 | **新增右上角操作区**：设计稿有 VIP 胶囊 + 齿轮设置按钮。新增 `buildTopActions()` 绝对定位到 root（`top = max(fit(12), safeTop()+fit(6))`，避开 TapTap 宿主胶囊），不占正文高度。VIP → `Nav.go("shop")`；设置 → 复用 `Modal.alert`，「切换大字号」按钮写入 `save.settings.big_text`、`Theme.setBigText` 并 `Nav.reset("home")` 重建。齿轮图标新生成 `assets/sprites/icons/icon_settings.png`（白色透明底 64²）+ meta |
+| S32-3 | **卡片文案断行对齐**：设计稿四张卡副标题都是固定两行。改为显式 `\n`：府邸「官邸门客 · 签到 / 任务（有奖励可领）」、挑战「限时 N 词 · / 今日剩 N 次」、图鉴「已收录 N 条 · / 错题本」、商店「金币 · 道具 · / 免广告」；`wrapLines` 上限 9→12 避免显式换行被二次拆行 |
+| S32-4 | **图标对齐修复**：`W.iconOrDot()` 固定给行容器预留 `marginRight`，用在四宫格的列容器居中图标上会把图标推偏。给该函数新增可选第 4 参 `noMargin`，`W.iconOrDot(key, size, color, true)` 时不加 margin；**必须在构造时传参**，构造后再改 `widget.marginRight` 对 Yoga 布局无效 |
+| S32-5 | **Layout Warning 踩坑**：VIP 胶囊固定 `height=fit(38)`，但 Label `fontSize≈21.6` 默认行高使内容高 41px > 容器 38px → 主页挂载时 2 条 `Overflow in 'homeVipBtn'`。给胶囊 Label 加 `lineHeight=1.0` 后归零。定位手段：给新容器挂 `id`，引擎 Layout Warning 会打印 id（S27 同法） |
+| S32-6 | 验证：`verify.sh` 全绿（54 单测 / 300 关 + 20 卷 0-0 / `res=0`）；`validate_pages.lua` **Layout Warning 0**；`luacheck scripts/` **0 warnings / 0 errors**；新增中文文案 → 字体子集重跑（7311 字）+ MiSans stub |
+
+**残留**：改动尚未进包，需用户再点一次「更新」生成 v20 后用 develop 码真机复验：
+书童是否单独居中可见、按钮宽度与位置、四宫格两行副标题、右上角 VIP / 设置胶囊是否避开宿主胶囊。
+本地 headless 巡检是 1322×546 横屏，走 ScrollView 分支，覆盖不到真机单屏分支（同 S30-4）。

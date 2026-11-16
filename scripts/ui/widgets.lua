@@ -75,9 +75,10 @@ end
 
 --- 图标贴片：assets/sprites/icons/icon_<key>.png 存在则显示贴图，
 --- 缺失时回退纯色圆点（图标资产不齐不破版，后续可无脑补 PNG）。
-function W.iconOrDot(key, size, dotColor)
+function W.iconOrDot(key, size, dotColor, noMargin)
     size = size or Theme.fit(22)
-    local gapRight = Theme.fit(10)
+    -- 行容器（胶囊）需要右侧留白；列容器居中图标应传 noMargin=true，否则整体左偏
+    local gapRight = noMargin and nil or Theme.fit(10)
     local src = "sprites/icons/icon_" .. key .. ".png"
     if cache:Exists(src) then
         return UI.Panel {

@@ -450,9 +450,9 @@
         "kudos_local_frame": 24
       },
       "size": 320,
-      "home_width_ratio": 0.34,
-      "home_size_max": 240,
-      "_doc_home": "S30：首页单屏布局时书童与「继续闯关」按钮并排，边长按 vw×home_width_ratio 算并封顶 home_size_max；矮屏 ScrollView 分支仍用 sprite.width。",
+    "home_width_ratio": 0.40,
+    "home_size_max": 260,
+    "_doc_home": "S30 单屏 + 2026-11-16 设计稿：书童改为独立居中一行、闯关按钮在其下方；边长按 vw×home_width_ratio 算并封顶 home_size_max；矮屏 ScrollView 分支仍用 sprite.width。",
       "breathe_lift": 4,
       "breathe_degrees": 1.1,
       "breathe_period": 3.4,

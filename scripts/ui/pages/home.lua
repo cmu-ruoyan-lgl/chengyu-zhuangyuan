@@ -279,7 +279,8 @@ local function entryCard(title, sub, onTap, opts)
     opts = opts or {}
     local kids = {}
     if opts.icon then
-        kids[#kids + 1] = W.iconOrDot(opts.icon, Theme.fit(36), opts.iconDot)
+        -- 列容器居中：noMargin=true，避免行用 marginRight 把图标推偏
+        kids[#kids + 1] = W.iconOrDot(opts.icon, Theme.fit(36), opts.iconDot, true)
     end
     kids[#kids + 1] = UI.Label {
         text = title,
@@ -292,7 +293,7 @@ local function entryCard(title, sub, onTap, opts)
         marginTop = opts.icon and Theme.fit(8) or nil,
     }
     kids[#kids + 1] = UI.Label {
-        text = W.wrapLines(sub or "", 9),
+        text = W.wrapLines(sub or "", 12),
         fontSize = Theme.font("caption", 24),
         fontColor = opts.subColor or c("ink_dim"),
         textAlign = "center",
@@ -319,6 +320,81 @@ local function entryCard(title, sub, onTap, opts)
     }
 end
 
+------------------------------------------------------------------------------
+-- 右上角操作区（2026-11-16 设计稿）：VIP 胶囊 + 设置齿轮
+-- VIP 指向商店（会员/权益入口）；设置提供大字号开关，沿用存档 settings.big_text。
+-- 绝对定位到 root，避免占用正文分区高度；top 让开 TapTap 宿主退出胶囊。
+------------------------------------------------------------------------------
+local function buildTopActions()
+    local pillH = Theme.fit(38)
+
+    local gear = W.iconOrDot("settings", Theme.fit(26), nil, true)
+
+    local settingsBtn = UI.Panel {
+        id = "homeSettingsBtn",
+        width = pillH,
+        height = pillH,
+        borderRadius = pillH / 2,
+        backgroundColor = W.withAlpha(c("ink"), 170),
+        justifyContent = "center",
+        alignItems = "center",
+        onClick = function()
+            local ok, Modal = pcall(require, "ui.modal")
+            if not ok or type(Modal) ~= "table" or not Modal.alert then return end
+            Modal.alert({
+                title = "设置",
+                message = "大字号模式让文字更易读，点击「切换」后立即生效并保存。",
+                buttonText = "切换大字号",
+                onClose = function()
+                    local save = Game.save()
+                    if type(save) ~= "table" then return end
+                    save.settings = save.settings or {}
+                    local on = not save.settings.big_text
+                    save.settings.big_text = on
+                    Theme.setBigText(on)
+                    Game.persist()
+                    Nav.reset("home")
+                end,
+            })
+        end,
+        children = { gear },
+    }
+
+    local vipBtn = UI.Panel {
+        id = "homeVipBtn",
+        height = pillH,
+        paddingHorizontal = Theme.fit(14),
+        borderRadius = pillH / 2,
+        backgroundColor = W.withAlpha(c("ink"), 170),
+        justifyContent = "center",
+        alignItems = "center",
+        onClick = function() Nav.go("shop") end,
+        children = { UI.Label {
+            text = "VIP",
+            fontSize = Theme.font("caption", 24) * 0.9,
+            lineHeight = 1.0,
+            fontColor = c("cream"),
+            fontWeight = "bold",
+            textAlign = "center",
+            flexShrink = 1,
+        } },
+    }
+
+    return UI.Panel {
+        id = "homeTopActions",
+        position = "absolute",
+        top = math.max(Theme.fit(12), Theme.safeTop() + Theme.fit(6)),
+        right = Theme.fit(20),
+        flexDirection = "row",
+        alignItems = "center",
+        children = {
+            vipBtn,
+            UI.Panel { width = Theme.fit(10) },
+            settingsBtn,
+        },
+    }
+end
+
 function Home.mount()
     local rank = Game.rank()
     local info = Game.compliance()
@@ -333,7 +409,8 @@ function Home.mount()
         width = "100%",
         flexDirection = "column",
         alignItems = "center",
-        paddingTop = math.max(Theme.fit(84), Theme.safeTop() + Theme.fit(24)),
+        -- 顶部给右上角 VIP / 设置胶囊留出空间（设计稿 2026-11-16）
+        paddingTop = math.max(Theme.fit(84), Theme.safeTop() + Theme.fit(48)),
         children = {
             UI.Label {
                 text = "成语小状元",
@@ -368,9 +445,10 @@ function Home.mount()
         or (levelId > 1 and string.format("第 %d 关 / 共 %d 关", levelId, maxLevel)
             or string.format("共 %d 关等你挑战", maxLevel))
     local playBtn = UI.Panel {
-        width = "80%",
+        -- 设计稿：按钮在书童下方独立居中，宽度约为屏宽六成
+        width = "60%",
         paddingVertical = Theme.fit(20),
-        borderRadius = 40,
+        borderRadius = Theme.fit(36),
         backgroundGradient = { direction = "to-bottom", from = c("jade"), to = c("jade_deep") },
         borderWidth = 3,
         borderColor = c("jade_deep"),
@@ -400,31 +478,23 @@ function Home.mount()
             },
         },
     }
-    -- S30：书童与闯关按钮并排，省掉原来独立一整行（size+20 base）的高度。
-    -- 真机竖屏一屏即可容纳标题 / 按钮+书童 / 四宫格 / 底栏，不需要上下拖动。
+    -- 2026-11-16 设计稿：书童独立居中一行，闯关按钮在其正下方。
+    -- 仍然保持 S30 的单屏目标：真机竖屏 5 段 space-between 一屏看全；
+    -- 矮屏/横屏走 ScrollView 兜底，避免固定分区被压出 Layout Warning。
     local vw = UI.GetWidth() or Config.num("ui.design_width", 1080)
     local scholarSize = math.floor(math.min(
-        cfgNum("home_size_max", 240),
-        vw * cfgNum("home_width_ratio", 0.34)))
-    local middle = UI.Panel {
+        cfgNum("home_size_max", 260),
+        vw * cfgNum("home_width_ratio", 0.40)))
+    local scholarSection = UI.Panel {
         width = "100%",
-        flexDirection = "row",
+        paddingTop = Theme.fit(6),
+        children = { buildScholar(scholarSize) },
+    }
+    local playSection = UI.Panel {
+        width = "100%",
         alignItems = "center",
-        justifyContent = "center",
-        paddingHorizontal = Theme.fit(18),
-        paddingTop = Theme.fit(24),
-        children = {
-            UI.Panel {
-                width = "58%",
-                alignItems = "center",
-                children = { playBtn },
-            },
-            UI.Panel {
-                width = "42%",
-                alignItems = "center",
-                children = { buildScholar(scholarSize) },
-            },
-        },
+        paddingTop = Theme.fit(8),
+        children = { playBtn },
     }
 
     -- 四宫格：府邸 / 挑战 / 图鉴 / 商店
@@ -439,11 +509,11 @@ function Home.mount()
                 width = "100%",
                 flexDirection = "row",
                 children = {
-                    entryCard("府邸", "官职门客 · 签到任务" .. pendingMark,
+                    entryCard("府邸", "官邸门客 · 签到\n任务" .. pendingMark,
                         function() Nav.go("court") end,
                         { icon = "home" }),
                     entryCard("每日挑战",
-                        string.format("限时 %d 词 · 今日剩 %d 次",
+                        string.format("限时 %d 词 ·\n今日剩 %d 次",
                             ch.target or 0, ch.remaining or 0),
                         function()
                             if (ch.remaining or 0) <= 0 then
@@ -466,10 +536,10 @@ function Home.mount()
                 flexDirection = "row",
                 children = {
                     entryCard("成语图鉴",
-                        string.format("已收录 %d 条 · 错题本", Game.bookCount()),
+                        string.format("已收录 %d 条 ·\n错题本", Game.bookCount()),
                         function() Nav.go("book") end,
                         { icon = "book" }),
-                    entryCard("商店", "金币 · 道具 · 免广告",
+                    entryCard("商店", "金币 · 道具 ·\n免广告",
                         function() Nav.go("shop") end,
                         { icon = "shop" }),
                 },
@@ -508,13 +578,14 @@ function Home.mount()
         },
     }
 
-    -- S30：真机竖屏走单屏 Panel，四段用 space-between 均匀铺满整屏，
-    -- 书童与按钮并排后无需上下拖动即可看全；矮屏/横屏（headless 巡检 1322×546）
-    -- 仍保留 ScrollView 兜底，避免固定分区被压出 Layout Warning。
+    -- S30 单屏 + 2026-11-16 设计稿：真机竖屏走单屏 Panel，
+    -- header / 书童 / 闯关按钮 / 四宫格 / 底栏五段 space-between 均匀铺满整屏，
+    -- 无需上下拖动即可看全；矮屏/横屏（headless 巡检 1322×546）仍保留
+    -- ScrollView 兜底，避免固定分区被压出 Layout Warning。
     local vh = UI.GetHeight() or Config.num("ui.design_height", 1920)
     local singleScreen = not Theme.isBigText()
         and vh >= vw * Config.num("ui.home_single_screen_ratio", 1.5)
-    local sections = { header, middle, grid, footer }
+    local sections = { header, scholarSection, playSection, grid, footer }
     local body
     if singleScreen then
         body = UI.Panel {
@@ -548,7 +619,8 @@ function Home.mount()
         backgroundColor = c("bg_top"),
         backgroundImage = "Textures/bg_main.png",
         backgroundFit = "cover",
-        children = { body },
+        -- 右上角 VIP / 设置为绝对定位覆盖层，不占正文分区高度
+        children = { body, buildTopActions() },
     }
     UI.SetRoot(root, true)
     return root
