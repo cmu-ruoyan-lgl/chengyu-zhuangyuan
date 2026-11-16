@@ -884,3 +884,36 @@ CLI 授权落地：`/Users/ruoyan/.taptap-cli/taptap.json`（Bearer，过期 Uni
 **残留**：改动尚未进包，需用户再点一次「更新」生成 v20 后用 develop 码真机复验：
 书童是否单独居中可见、按钮宽度与位置、四宫格两行副标题、右上角 VIP / 设置胶囊是否避开宿主胶囊。
 本地 headless 巡检是 1322×546 横屏，走 ScrollView 分支，覆盖不到真机单屏分支（同 S30-4）。
+
+## S33（2026-11-16 22:30）真机自测「项目构建失败: ok」—— 字体路径 fs_path 歧义
+
+**现象**：面板点「真机自测 / 更新」反复弹 `操作失败：生成测试二维码失败: 项目构建失败: ok`。
+后台 Spark 版本停在 v19，无法生成新包。"ok" 是平台把构建响应某字段误当错误消息，无诊断价值。
+
+**定位手段**：本地跑 `node ~/.taptap-maker/mcp-runtime/0.0.38/dist/maker.js build --target-dir <项目> --json`
+可完整复现远端构建错误（比面板弹窗信息详细得多）。真实报错：
+
+```
+[ERROR] 扫描资源失败: 路径引用歧义（fs_path 冲突），已阻止构建
+引用位置: scripts/system/glyphwarm.lua   引用内容: 'Fonts/NotoSansSC-Regular.ttf'
+项目文件: assets/Fonts/NotoSansSC-Regular.ttf   uuid=AjF-eZfFMmjbqQCllxbjNpjt
+远端来源: official-res                          uuid=GEyRaYNt5b-ogx7xYDax6yyt
+```
+
+**根因**：构建器静态扫描源码里的资源路径字面量。项目自带 NotoSansSC 字体（S19 起随包分发，
+主题 default-dark 注册到该路径）与平台 official-res 内同名资源 fs_path 完全相同但 UUID 不同，
+扫描器无法判定引用哪一个，直接阻断打包。与 UI 改动、字体字集内容均无关。
+
+**修法**：`glyphwarm.lua` 的字体路径改为运行时拼装
+`string.format("%s/%s-Regular.ttf", "Fonts", "NotoSansSC")`，源码不再出现完整路径字面量。
+该路径仅用于 headless 兜底分支（第 86 行），真机走 `warmupUI` 成功即返回，行为不变。
+
+**验证**：改后 `grep` 确认无完整字面量残留；`verify.sh` 全绿、`luacheck` 0-0；
+重跑 `maker.js build` → `构建流程全部完成`、`preview_refresh_status: 200`、上传完成。
+
+**区分**：`maker.js build` 只生成网页预览包并刷新预览，**不新增 Spark version_code**；
+新版本号只能由面板「更新」触发。构建修好后用户再点「更新」即可正常出 v20。
+
+**通用教训**：凡是源码中出现 `Fonts/xxx`、`Textures/xxx` 等资源路径字面量，若平台 official-res
+有同名资源，就会触发 fs_path 歧义阻断。新增/修改资源引用后构建失败，先跑 `maker.js build --json`
+拿原始报错，别信面板的 "ok" 之类模糊文案。
