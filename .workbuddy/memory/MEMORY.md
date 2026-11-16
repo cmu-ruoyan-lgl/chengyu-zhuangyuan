@@ -10,6 +10,10 @@
   （公开仓库，SSH 免密）。推 GitHub 用 `git push github main`，**不要 `-u`**；main 必须继续追踪 origin/main。
 - 引擎 Lua **5.4**：`luac54` 语法 / `lua54` 单测。运行时三要素：`-tool_mode`（必须）、`-graphicsheadless`
   （**仅 validate**，测图集/截图绝不能带）、`-pp` 不能替代。
+- **UrhoXRuntime 启动形式只有三种**：`<scriptfile>` / `-game_url=<url>` / `-app_box=<id>`，**没有 `--help`**。
+  执行 `UrhoXRuntime --help` 会把 `--help` 当脚本名解析失败、打印整段 Usage 后卡住被超时 kill（exit 137）。
+  **勿再用 `--help` 探测参数**；查参数用 `strings .cli/UrhoXRuntime | grep` 或直接读 `tools/verify.sh` 的调用样例。
+  分辨率参数是 `-x <res>` / `-y <res>`（横/竖），视口环境：`-tool_mode` 默认 headless 约 1322×546。
 
 ## 工具链
 - 一键验证 `bash tools/verify.sh`（语法→54 单测→300 关→引擎 validate）；红线 0 error / 0 warning /
