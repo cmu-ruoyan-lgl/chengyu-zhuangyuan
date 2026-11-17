@@ -917,3 +917,45 @@ CLI 授权落地：`/Users/ruoyan/.taptap-cli/taptap.json`（Bearer，过期 Uni
 **通用教训**：凡是源码中出现 `Fonts/xxx`、`Textures/xxx` 等资源路径字面量，若平台 official-res
 有同名资源，就会触发 fs_path 歧义阻断。新增/修改资源引用后构建失败，先跑 `maker.js build --json`
 拿原始报错，别信面板的 "ok" 之类模糊文案。
+
+## S34（2026-11-17 13:20–13:40）首页与设计稿间距/比例对齐
+
+**现象**：用户真机截图与设计稿并排比对，四宫格起点 70%（设计稿 60%）、底栏 96% 且健康文字被裁、
+书童/按钮/卡片偏小。
+
+**量化方法**（可复用）：PIL 扫描设计稿色块定位锚点——按钮 y 46–57.5%、卡片行1 60.1–73.9%、
+行2 75.2–88.8%、底栏 91–95%。设计稿比例 0.562（9:16），真机截图 0.463（更瘦长）。
+`/tmp/compare_home.png` 是两图同高并排 + 10% 刻度线的对比图做法。
+
+**根因**：单屏分支用 `justifyContent="space-between"` 把 5 段均分剩余空间。屏幕越瘦长，
+段间空白越大，四宫格/底栏被越推越低；且卡片高度靠文字撑开，在瘦屏上被压扁。
+
+**修法**（`config.json` + `home.lua`）：
+- 新增 `ui.home_section` 按屏高百分比固定 5 段：header 24.5% / 书童 21.5% / 按钮 12.5% /
+  四宫格 30.5% / 底栏 11%（和=1.0）。单屏分支每段包一层 `height=pct(ratio)` + 段内 `justifyContent=center`，
+  替代 space-between；矮屏/横屏仍走 ScrollView。
+- 按钮 `minHeight=vh×0.11`、宽度 66%、主标题字号系数 0.82→0.92；
+  卡片 `minHeight=vh×0.128`（entryCard 新增 opts.minHeight）；
+  书童 `home_width_ratio 0.40→0.36`、`size_max 260→280`（图集正方形，设计稿书童宽高比 0.56，
+  取折中边长约屏高 16%）。
+- header 顶部 padding 从 `max(fit(84), safeTop+fit(48))` 改为 `safeTop+fit(10)`，避免与段居中叠加。
+
+**验证**：
+- 数学模拟三种视口（780×1736 / 652×1408 / 1008×1792）：按钮 46.8–57.8%、卡片行1 60–74%、
+  行2 75–89%、底栏 92.8%，三者几乎一致且贴合设计稿锚点。
+- **强制单屏分支验证法**：临时把 `home_single_screen_ratio=0.01` 让 headless 走新分支，
+  出现恰好 5 条 Layout Warning（对应 5 个固定段）——证明分段代码生效；横屏高度不足属预期，
+  恢复配置后 Layout Warning 归零。
+- **本地无法竖屏截图实证**：`-x/-y` 在 `-tool_mode` 下被引擎忽略（视口仍 1322×699），
+  `-graphicssurfaceless` 该构建不支持，`-w` 被 tool_mode 强制 headless。故竖屏只能靠数学模拟。
+- `verify.sh` 全绿、页面巡检 Layout Warning 0、`luacheck` 0-0、字体子集重建（7311 字）。
+  远端 `maker.js build` 成功（`构建流程全部完成`）。
+
+**扫码问题（同轮）**：用户扫面板「真机自测」二维码仍进不去——解码确认是
+`type=debug` + `game_url=src/m_x7qf/`（老问题，RISK S26）。后台已到 v21，
+用 `get-test-qr-code --data '{"version_code":"21"}'` 生成 develop 码
+`artifacts/test-qr-spark-21.png`（`type=develop&version_id=497553`，Vision 解码校验通过）。
+**生成二维码 PNG 的方法**：Node qrcode 库在 `/Users/ruoyan/.npm/_npx/8830156d45fbcf5a/node_modules`，
+`NODE_PATH=<该路径> node -e "QRCode.toFile(...)";` 512px。
+
+**残留**：S34 代码需用户再点「更新」出 v22 才能真机看到；v21 不含本轮改动。
