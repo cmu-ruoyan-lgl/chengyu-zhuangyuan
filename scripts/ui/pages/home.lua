@@ -304,6 +304,9 @@ local function entryCard(title, sub, onTap, opts)
     return UI.Panel {
         flexGrow = 1,
         flexBasis = 0,
+        -- S34：设计稿卡片有固定高度（屏高 14%），不能只靠文字撑高，
+        -- 否则在瘦长真机上卡片被压扁、四宫格整体上移失衡。
+        minHeight = opts.minHeight or nil,
         margin = Theme.fit(8),
         borderRadius = Theme.fit(20),
         backgroundColor = c("panel"),
@@ -409,8 +412,9 @@ function Home.mount()
         width = "100%",
         flexDirection = "column",
         alignItems = "center",
-        -- 顶部给右上角 VIP / 设置胶囊留出空间（设计稿 2026-11-16）
-        paddingTop = math.max(Theme.fit(84), Theme.safeTop() + Theme.fit(48)),
+        -- S34：外层锚点段已垂直居中；这里只保留宿主胶囊避让 + 少量余量，
+        -- 避免旧的 fit(84) 与段居中叠加把标题推得过低。
+        paddingTop = Theme.safeTop() + Theme.fit(10),
         children = {
             UI.Label {
                 text = "成语小状元",
@@ -445,9 +449,11 @@ function Home.mount()
         or (levelId > 1 and string.format("第 %d 关 / 共 %d 关", levelId, maxLevel)
             or string.format("共 %d 关等你挑战", maxLevel))
     local playBtn = UI.Panel {
-        -- 设计稿：按钮在书童下方独立居中，宽度约为屏宽六成
-        width = "60%",
-        paddingVertical = Theme.fit(20),
+        -- S34：设计稿按钮宽约屏宽 66%、高约屏高 11.5%（46-57.5%）
+        width = string.format("%d%%", math.floor(Config.num("ui.home_button_width", 0.66) * 100)),
+        minHeight = (UI.GetHeight() or Config.num("ui.design_height", 1920))
+            * Config.num("ui.home_button_min_h_ratio", 0.11),
+        paddingVertical = Theme.fit(24),
         borderRadius = Theme.fit(36),
         backgroundGradient = { direction = "to-bottom", from = c("jade"), to = c("jade_deep") },
         borderWidth = 3,
@@ -460,7 +466,7 @@ function Home.mount()
         children = {
             UI.Label {
                 text = playLabel,
-                fontSize = Theme.font("title", 56) * 0.82,
+                fontSize = Theme.font("title", 56) * 0.92,
                 fontColor = c("cream"),
                 fontWeight = "bold",
                 textAlign = "center",
@@ -499,6 +505,10 @@ function Home.mount()
 
     -- 四宫格：府邸 / 挑战 / 图鉴 / 商店
     local pendingMark = Game.hasPendingDaily() and "（有奖励可领）" or ""
+    -- S34：卡片固定最小高度 = 屏高 × home_card_min_h_ratio（设计稿约 14%），
+    -- 让卡片饱满、四宫格总高贴合锚点，不再被文字行数牵着走。
+    local vhPx = UI.GetHeight() or Config.num("ui.design_height", 1920)
+    local cardMinH = vhPx * Config.num("ui.home_card_min_h_ratio", 0.14)
     local grid = UI.Panel {
         width = "100%",
         flexDirection = "column",
@@ -511,7 +521,7 @@ function Home.mount()
                 children = {
                     entryCard("府邸", "官邸门客 · 签到\n任务" .. pendingMark,
                         function() Nav.go("court") end,
-                        { icon = "home" }),
+                        { icon = "home", minHeight = cardMinH }),
                     entryCard("每日挑战",
                         string.format("限时 %d 词 ·\n今日剩 %d 次",
                             ch.target or 0, ch.remaining or 0),
@@ -528,7 +538,7 @@ function Home.mount()
                                 alert("挑战开启失败", "请稍后再试（" .. tostring(err) .. "）")
                             end
                         end,
-                        { icon = "challenge", titleColor = c("seal_deep") }),
+                        { icon = "challenge", titleColor = c("seal_deep"), minHeight = cardMinH }),
                 },
             },
             UI.Panel {
@@ -538,10 +548,10 @@ function Home.mount()
                     entryCard("成语图鉴",
                         string.format("已收录 %d 条 ·\n错题本", Game.bookCount()),
                         function() Nav.go("book") end,
-                        { icon = "book" }),
+                        { icon = "book", minHeight = cardMinH }),
                     entryCard("商店", "金币 · 道具 ·\n免广告",
                         function() Nav.go("shop") end,
-                        { icon = "shop" }),
+                        { icon = "shop", minHeight = cardMinH }),
                 },
             },
         },
@@ -578,23 +588,40 @@ function Home.mount()
         },
     }
 
-    -- S30 单屏 + 2026-11-16 设计稿：真机竖屏走单屏 Panel，
-    -- header / 书童 / 闯关按钮 / 四宫格 / 底栏五段 space-between 均匀铺满整屏，
-    -- 无需上下拖动即可看全；矮屏/横屏（headless 巡检 1322×546）仍保留
-    -- ScrollView 兜底，避免固定分区被压出 Layout Warning。
+    -- S34 设计稿锚点布局：真机竖屏按屏高百分比把 5 段固定分段、段内居中。
+    -- 旧 space-between 会把多余空间均分到段间，在瘦长真机（0.463）上把四宫格
+    -- 推到 70%（设计稿 60%）、底栏推到 96% 致健康文字被裁。固定分段后各元素
+    -- 落回设计稿锚点：header 0-24.5% / 书童 24.5-46% / 按钮 46-58.5% /
+    -- 四宫格 58.5-89% / 底栏 89-100%。
+    -- 矮屏/横屏（headless 巡检 1322×546）仍走 ScrollView 兜底，避免 Layout Warning。
     local vh = UI.GetHeight() or Config.num("ui.design_height", 1920)
     local singleScreen = not Theme.isBigText()
         and vh >= vw * Config.num("ui.home_single_screen_ratio", 1.5)
-    local sections = { header, scholarSection, playSection, grid, footer }
+    local rawSections = { header, scholarSection, playSection, grid, footer }
     local body
     if singleScreen then
+        local ratios = {
+            Config.num("ui.home_section.header", 0.245),
+            Config.num("ui.home_section.scholar", 0.215),
+            Config.num("ui.home_section.button", 0.125),
+            Config.num("ui.home_section.grid", 0.305),
+            Config.num("ui.home_section.footer", 0.11),
+        }
+        local anchored = {}
+        for i, child in ipairs(rawSections) do
+            anchored[#anchored + 1] = UI.Panel {
+                width = "100%",
+                height = pct(ratios[i]),
+                justifyContent = "center",
+                children = { child },
+            }
+        end
         body = UI.Panel {
             width = "100%",
             flexGrow = 1,
             flexBasis = 0,
             flexDirection = "column",
-            justifyContent = "space-between",
-            children = sections,
+            children = anchored,
         }
     else
         body = UI.ScrollView {
@@ -607,7 +634,7 @@ function Home.mount()
                 width = "100%",
                 flexDirection = "column",
                 flexShrink = 1,
-                children = sections,
+                children = rawSections,
             } },
         }
     end
